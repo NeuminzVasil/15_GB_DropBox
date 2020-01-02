@@ -52,7 +52,7 @@ public class ServerNetListener implements Runnable {
                     .channel(NioServerSocketChannel.class) // указание канала для подключения новых клиентов
                     .childHandler(channelInitializer).childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            channelFuture = serverBootstrap.bind(Settings.hostPort).sync();// запуск прослушивания порта 8189 для подключения клиентов
+            channelFuture = serverBootstrap.bind(Settings.HOST_PORT).sync();// запуск прослушивания порта 8189 для подключения клиентов
             System.out.println("ServerNetListener.Works.");
 //             NL - сервер. здесь происходит магия.
 //                - блокирующая команда.

@@ -41,6 +41,12 @@ public class Reflector extends ChannelInboundHandlerAdapter {
             } else if (msg instanceof CommandsList.GetFileFromServer) {
                 ((CommandsList.GetFileFromServer) msg).Reflection(ctx, msg, ((CommandsList.GetFileFromServer) msg).getWhoIsSender());
 
+            } else if (msg instanceof CommandsList.DeleteFile) {
+                ((CommandsList.DeleteFile) msg).Reflection(ctx, msg, ((CommandsList.DeleteFile) msg).getWhoIsSender());
+
+            } else if (msg instanceof CommandsList.RenamingFile) {
+                ((CommandsList.RenamingFile) msg).Reflection(ctx, msg, ((CommandsList.RenamingFile) msg).getWhoIsSender());
+
             } else {
                 System.out.println("Reflector: unknown command!");
             }

@@ -56,7 +56,7 @@ public class ClientNetListener implements Runnable {
 
             clientBootstrap.channel(NioSocketChannel.class);
 
-            clientBootstrap.remoteAddress(new InetSocketAddress(Settings.hostName, Settings.hostPort));
+            clientBootstrap.remoteAddress(new InetSocketAddress(Settings.HOST_NAME, Settings.HOST_PORT));
 
             channelInitializer = new ChannelInitializer<SocketChannel>() {
                 @Override
@@ -94,7 +94,7 @@ public class ClientNetListener implements Runnable {
 
     @Override
     public String toString() {
-        String result = String.format("ClientNetListener state: \n\t" +
+        return String.format("ClientNetListener state: \n\t" +
                         "clientName: %s\n\t" +
                         "nioEventLoopGroup: %s\n\t" +
                         "clientBootstrap: %s\n\t" +
@@ -107,6 +107,5 @@ public class ClientNetListener implements Runnable {
                 this.channelFuture,
                 this.socketChannel,
                 this.channelInitializer);
-        return result;
     }
 }

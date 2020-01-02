@@ -1,9 +1,0 @@
-/test/
-.idea/
-*/target/
-out/
-lib/
-*.iml
-/StorageLocal/
-/StorageRemote/
-/target/

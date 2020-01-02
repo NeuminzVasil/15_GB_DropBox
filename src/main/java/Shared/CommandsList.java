@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +27,7 @@ public class CommandsList {
      */
     public static class ServerStorageInfo implements Serializable, CommandAnswer {
 
-        private WhoIsSender whoIsSender = WhoIsSender.NULL;
+        private WhoIsSender whoIsSender;
         private File file = new File(SERVER_PATH.toString());
         private List<File> files;
 
@@ -107,7 +108,7 @@ public class CommandsList {
      */
     public static class ClientStorageInfo implements Serializable, CommandAnswer {
 
-        private WhoIsSender whoIsSender = WhoIsSender.NULL;
+        private WhoIsSender whoIsSender;
         private File file = new File(CLIENT_PATH.toString());
         private List<File> files;
 
@@ -164,7 +165,7 @@ public class CommandsList {
 
         private String fileName;
         private byte[] fileData;
-        private WhoIsSender whoIsSender = WhoIsSender.NULL;
+        private WhoIsSender whoIsSender;
 
         public GetFileFromServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
             this.whoIsSender = whoIsSender;
@@ -223,7 +224,7 @@ public class CommandsList {
         private String fileName;
         private byte[] fileData;
 
-        private WhoIsSender whoIsSender = WhoIsSender.NULL;
+        private WhoIsSender whoIsSender;
 
         public SendFileToServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
             this.whoIsSender = whoIsSender;
@@ -255,5 +256,80 @@ public class CommandsList {
 
         }
     }
+
+    /**
+     * Класс списка файлов на стороне сервера
+     */
+    public static class DeleteFile implements Serializable, CommandAnswer {
+
+        String fileName;
+        private WhoIsSender whoIsSender;
+
+        /**
+         * конструктор объекта с путем к хранилищу по умолчканию
+         */
+        public DeleteFile(String usersCommand, WhoIsSender whoIsSender) {
+            this.whoIsSender = whoIsSender;
+            this.fileName = usersCommand.split(" ")[1];
+            this.fileName = SERVER_PATH + "\\" + fileName;
+        }
+
+        @Override
+        public WhoIsSender getWhoIsSender() {
+            return this.whoIsSender;
+        }
+
+        @Override
+        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+
+            try {
+                Files.delete(Paths.get(this.fileName));
+            } catch (IOException e) {
+                System.err.println("файл: " + this.fileName + " не возможно удалить хранилища на сервере.");
+                e.printStackTrace();
+            }
+            System.out.println("файл: " + this.fileName + " удален из хранилища на сервере."); // log
+        }
+    }
+
+    /**
+     * Класс списка файлов на стороне сервера
+     */
+    public static class RenamingFile implements Serializable, CommandAnswer {
+
+        String fileName;
+        String newFileName;
+        private WhoIsSender whoIsSender;
+
+        /**
+         * конструктор объекта с путем к хранилищу по умолчканию
+         */
+        public RenamingFile(String usersCommand, WhoIsSender whoIsSender) {
+            this.whoIsSender = whoIsSender;
+            this.fileName = usersCommand.split(" ")[1];
+            this.newFileName = usersCommand.split(" ")[2];
+            this.fileName = SERVER_PATH + "\\" + this.fileName;
+            this.newFileName = SERVER_PATH + "\\" + this.newFileName;
+        }
+
+        @Override
+        public WhoIsSender getWhoIsSender() {
+            return this.whoIsSender;
+        }
+
+        @Override
+        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+
+            try {
+                Files.move(Paths.get(this.fileName), Paths.get(this.newFileName), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                System.err.println("файл: " + this.fileName + " не возможно переименовать на сервере.");
+                e.printStackTrace();
+            }
+            System.out.println("файл: " + this.fileName + " переименован в " + this.newFileName + " в хранилище на сервере."); // log
+            //~rf demo.txt demo.bmp
+        }
+    }
+
 
 }

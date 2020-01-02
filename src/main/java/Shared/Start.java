@@ -10,8 +10,8 @@ public class Start {
     public static void main(String[] args) {
 
         if (args.length > 0) {
-            Settings.hostName = args[0];
-            Settings.hostPort = Integer.parseInt(args[1]);
+            Settings.HOST_NAME = args[0];
+            Settings.HOST_PORT = Integer.parseInt(args[1]);
         }
 
         // запускаем сервер
@@ -21,7 +21,7 @@ public class Start {
         serverNetListenerThread.start();
 
         // запускаем консоль с внутренним запуском клиентского подключения
-        ClientConsoleCommandLine clientConsoleCommandLine = new ClientConsoleCommandLine(Settings.hostName, Settings.hostPort);
+        ClientConsoleCommandLine clientConsoleCommandLine = new ClientConsoleCommandLine(Settings.HOST_NAME, Settings.HOST_PORT);
         Thread clientConsoleCommandLineThread = new Thread(clientConsoleCommandLine);
         clientConsoleCommandLineThread.start();
 
