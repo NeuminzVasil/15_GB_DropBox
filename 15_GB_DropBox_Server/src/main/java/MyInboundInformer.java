@@ -9,14 +9,6 @@ public class MyInboundInformer extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        System.out.println(handlerName +
-                ".MyInboundInformer.channelRegistered(): " +
-                "(remoteAddress: " + ctx.channel().remoteAddress() + ")"); // log
-        super.channelRegistered(ctx);
-    }
-
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println(handlerName +
                 ".MyInboundInformer.channelRead(): " +

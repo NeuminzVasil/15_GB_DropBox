@@ -16,10 +16,5 @@ public class Start {
         Thread serverNetListenerThread = new Thread(serverNetListener);
         serverNetListenerThread.start();
 
-/*        // запускаем консоль с внутренним запуском клиентского подключения
-        ClientConsoleCommandLine clientConsoleCommandLine = new ClientConsoleCommandLine(Settings.HOST_NAME, Settings.HOST_PORT);
-        Thread clientConsoleCommandLineThread = new Thread(clientConsoleCommandLine);
-        clientConsoleCommandLineThread.start();*/
-
     }
 }

@@ -25,16 +25,13 @@ public class Reflector extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            // NL обработка входящего объекта. Объект команды сам знает что от него требуется. см. Reflector()
+            // NL обработка входящего объекта. Объект сам знает что от него требуется. см. Reflector()
 
-            if (msg instanceof CommandsList.ClientStorageInfo) {
-                ((CommandsList.ClientStorageInfo) msg).Reflection(ctx, msg, ((CommandsList.ClientStorageInfo) msg).getWhoIsSender());
+            if (msg instanceof CommandsList.GetStorageInfo) {
+                ((CommandsList.GetStorageInfo) msg).Reflection(ctx, msg, ((CommandsList.GetStorageInfo) msg).getWhoIsSender());
 
             } else if (msg instanceof CommandsList.SendFileToServer) {
                 ((CommandsList.SendFileToServer) msg).Reflection(ctx, msg, ((CommandsList.SendFileToServer) msg).getWhoIsSender());
-
-            } else if (msg instanceof CommandsList.ServerStorageInfo) {
-                ((CommandsList.ServerStorageInfo) msg).Reflection(ctx, msg, ((CommandsList.ServerStorageInfo) msg).getWhoIsSender());
 
             } else if (msg instanceof CommandsList.GetFileFromServer) {
                 ((CommandsList.GetFileFromServer) msg).Reflection(ctx, msg, ((CommandsList.GetFileFromServer) msg).getWhoIsSender());

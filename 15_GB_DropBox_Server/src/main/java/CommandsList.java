@@ -18,35 +18,34 @@ public class CommandsList {
 
 
     /**
-     * Класс списка файлов на стороне сервера
+     * Класс получения списка файлов
+     * сторона получения файлов указывыается окончанием команды
+     * ~si ~s получение списка файлов на стороне сервера
+     * ~si ~r получение списка файлов на стороне клиента
      */
-    public static class ServerStorageInfo implements Serializable, CommandAnswer {
+    public static class GetStorageInfo implements Serializable, CommandAnswer {
 
         private WhoIsSender whoIsSender;
-        private File file = new File(Settings.SERVER_PATH.toString());
+        private File file;
         private List<File> files;
 
         /**
          * конструктор объекта с путем к хранилищу по умолчканию
          */
-        public ServerStorageInfo(WhoIsSender whoIsSender) {
+        public GetStorageInfo(String usersCommand, WhoIsSender whoIsSender) {
 
             this.whoIsSender = whoIsSender;
+
+            if (usersCommand.split(" ")[1].equals("~s"))
+                file = new File(Settings.SERVER_PATH.toString());
+            else
+                file = new File(Settings.CLIENT_PATH.toString());
+
             this.files = Arrays.asList(file.listFiles());
         }
 
         /**
-         * конструктор объекта
-         *
-         * @param path = путь к хранилицу на стороне сервера
-         */
-        public ServerStorageInfo(String path, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.files = Arrays.asList(new File("15_CloudServer/StorageRemote/").listFiles());
-        }
-
-        /**
-         * Метод получения списка файлов на стороне сервера
+         * Метод получения списка файлов в хранилище
          *
          * @return - List файлов
          */
@@ -55,6 +54,11 @@ public class CommandsList {
             return this.files;
         }
 
+        /**
+         * Метод получения отправителя пакета
+         *
+         * @return - отправитель
+         */
         @Override
         public WhoIsSender getWhoIsSender() {
             return this.whoIsSender;
@@ -69,8 +73,7 @@ public class CommandsList {
 
         /**
          * Переопределение toString для обекта.
-         *
-         * @return
+         * @return строковое представление объекта
          */
         @Override
         public String toString() {
@@ -87,69 +90,15 @@ public class CommandsList {
                 case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
                     this.whoIsSender = WhoIsSender.SERVER;
                     ctx.writeAndFlush(this);
+                    System.out.println("GetStorageInfo.request.done");
                     break;
                 case SERVER: // если отправителем был Сервер то выполняем на клиенте то что нужно клиенту
                     System.out.println(this);
                     this.whoIsSender = WhoIsSender.NULL;
                     break;
                 default:
-                    System.err.println("MessageCommand. Не указан отрпавитель SERVER || CLIENT");
+                    System.err.println("GetStorageInfo.Reflection. Не указан отрпавитель SERVER || CLIENT");
             }
-        }
-    }
-
-    /**
-     * Класс списка файлов на стороне клиента
-     */
-    public static class ClientStorageInfo implements Serializable, CommandAnswer {
-
-        private WhoIsSender whoIsSender;
-        private File file = new File(Settings.CLIENT_PATH.toString());
-        private List<File> files;
-
-        /**
-         * конструктор объекта с путем к хранилищу по умолчканию
-         */
-        public ClientStorageInfo() {
-
-            this.whoIsSender = whoIsSender;
-            this.files = Arrays.asList(file.listFiles());
-        }
-
-        /**
-         * Метод получения списка файлов на стороне сервера
-         *
-         * @return - List файлов
-         */
-        public List<File> getFiles() {
-            updateFiles();
-            return this.files;
-        }
-
-        @Override
-        public WhoIsSender getWhoIsSender() {
-            return this.whoIsSender;
-        }
-
-        /**
-         * метод обновления списка файлов в листе файлов "private List<File> files"
-         */
-        private void updateFiles() {
-            this.files = Arrays.asList(file.listFiles());
-        }
-
-        @Override
-        public String toString() {
-            StringBuffer res = new StringBuffer();
-            files.forEach(file -> {
-                res.append(file.getName() + "\n");
-            });
-            return res.toString();
-        }
-
-        @Override
-        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
-            System.out.println(this); // log
         }
     }
 

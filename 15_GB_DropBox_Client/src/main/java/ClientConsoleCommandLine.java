@@ -62,12 +62,12 @@ public class ClientConsoleCommandLine implements Runnable {
 
                     System.out.println("commands list: ");
 
-                } else if (usersCommand.toString().toLowerCase().startsWith("~ci")) {// NL обработка команды ci
+                } else if (usersCommand.toString().toLowerCase().startsWith("~si")) {// NL обработка команды "storage info"
 
                     clientNetListener.getSocketChannel().writeAndFlush(
-                            new CommandsList.ClientStorageInfo());
+                            new CommandsList.GetStorageInfo(usersCommand.toString(), CommandAnswer.WhoIsSender.CLIENT));
 
-                } else if (usersCommand.toString().toLowerCase().startsWith("~gf")) {// NL обработка команды get file
+                } else if (usersCommand.toString().toLowerCase().startsWith("~gf")) {// NL обработка команды "get file"
 
                     clientNetListener.getSocketChannel().writeAndFlush(
                             new CommandsList.GetFileFromServer(usersCommand.toString(),
@@ -78,11 +78,6 @@ public class ClientConsoleCommandLine implements Runnable {
                     clientNetListener.getSocketChannel().writeAndFlush(
                             new CommandsList.SendFileToServer(usersCommand.toString(),
                                     CommandAnswer.WhoIsSender.CLIENT));
-
-                } else if (usersCommand.toString().toLowerCase().startsWith("~si")) {// NL обработка команды server information
-
-                    clientNetListener.getSocketChannel().writeAndFlush(
-                            new CommandsList.ServerStorageInfo(CommandAnswer.WhoIsSender.CLIENT));
 
                 } else if (usersCommand.toString().toLowerCase().startsWith("~df")) {// NL обработка команды deleting file
 
