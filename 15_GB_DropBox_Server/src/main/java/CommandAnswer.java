@@ -1,5 +1,3 @@
-package Shared;
-
 import io.netty.channel.ChannelHandlerContext;
 
 import java.io.IOException;

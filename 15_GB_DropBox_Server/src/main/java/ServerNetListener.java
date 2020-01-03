@@ -1,7 +1,3 @@
-package Server;
-
-import Shared.Reflector;
-import Shared.Settings;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -13,8 +9,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-
-import static Shared.Settings.MAX_OBJECT_SIZE;
 
 public class ServerNetListener implements Runnable {
     private String handlerName;
@@ -42,7 +36,7 @@ public class ServerNetListener implements Runnable {
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
 //                    socketChannel.pipeline().addLast(handlerName + ".BeforeEncodingInformer", new MyOutboundInformer(handlerName.concat(".BeforeEncodingInformer")));
 //                    socketChannel.pipeline().addLast(handlerName + ".BeforeDecodingInformer", new MyInboundInformer(handlerName.concat(".BeforeDecodingInformer")));
-                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
+                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(Settings.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
 //                    socketChannel.pipeline().addLast(handlerName + ".AfterDecodingInformer", new MyInboundInformer(handlerName.concat(".AfterDecodingInformer")));
                     socketChannel.pipeline().addLast(new Reflector(handlerName));
                 }

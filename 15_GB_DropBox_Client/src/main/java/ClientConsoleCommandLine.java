@@ -1,9 +1,3 @@
-package Client;
-
-import Shared.CommandAnswer;
-import Shared.CommandsList;
-import Shared.Settings;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,6 +50,7 @@ public class ClientConsoleCommandLine implements Runnable {
      */
     @Override
     public void run() {
+
         System.out.println("ClientConsoleCommandLine.started"); //log
         try {
             while (true) { // NL цикл чтения команд с консоли пользователя

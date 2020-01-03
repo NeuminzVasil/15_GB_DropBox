@@ -1,6 +1,3 @@
-package Shared;
-
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -15,8 +12,8 @@ public class Settings {
 
     public static void main(String[] args) {
 
-        System.out.println(Integer.MAX_VALUE);
-        System.out.println(MAX_OBJECT_SIZE);
+        System.out.println(CLIENT_PATH);
+        System.out.println(SERVER_PATH);
 
     }
 

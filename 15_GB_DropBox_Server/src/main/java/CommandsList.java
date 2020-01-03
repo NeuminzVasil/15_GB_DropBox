@@ -1,5 +1,3 @@
-package Shared;
-
 import io.netty.channel.ChannelHandlerContext;
 
 import java.io.File;
@@ -11,9 +9,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
-
-import static Shared.Settings.CLIENT_PATH;
-import static Shared.Settings.SERVER_PATH;
 
 
 /**
@@ -28,7 +23,7 @@ public class CommandsList {
     public static class ServerStorageInfo implements Serializable, CommandAnswer {
 
         private WhoIsSender whoIsSender;
-        private File file = new File(SERVER_PATH.toString());
+        private File file = new File(Settings.SERVER_PATH.toString());
         private List<File> files;
 
         /**
@@ -109,7 +104,7 @@ public class CommandsList {
     public static class ClientStorageInfo implements Serializable, CommandAnswer {
 
         private WhoIsSender whoIsSender;
-        private File file = new File(CLIENT_PATH.toString());
+        private File file = new File(Settings.CLIENT_PATH.toString());
         private List<File> files;
 
         /**
@@ -170,7 +165,7 @@ public class CommandsList {
         public GetFileFromServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SERVER_PATH + "\\" + fileName;
+            this.fileName = Settings.SERVER_PATH + "\\" + fileName;
         }
 
         public String getFileName() {
@@ -229,7 +224,7 @@ public class CommandsList {
         public SendFileToServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
-            this.fileName = CLIENT_PATH + "\\" + fileName;
+            this.fileName = Settings.CLIENT_PATH + "\\" + fileName;
             fileData = Files.readAllBytes(Paths.get(this.fileName).toAbsolutePath()); // NL записываем данные файла в объект
         }
 
@@ -245,7 +240,7 @@ public class CommandsList {
         @Override
         public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
             try {
-                this.fileName = SERVER_PATH + "\\" + Paths.get(this.fileName).getFileName();
+                this.fileName = Settings.SERVER_PATH + "\\" + Paths.get(this.fileName).getFileName();
                 Files.write(Paths.get(this.fileName), this.fileData, StandardOpenOption.CREATE_NEW);
             } catch (IOException e) {
                 System.err.println("не могу сохранить файл: " + this.getFileName() + " на сервере.");
@@ -271,7 +266,7 @@ public class CommandsList {
         public DeleteFile(String usersCommand, WhoIsSender whoIsSender) {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SERVER_PATH + "\\" + fileName;
+            this.fileName = Settings.SERVER_PATH + "\\" + fileName;
         }
 
         @Override
@@ -308,8 +303,8 @@ public class CommandsList {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
             this.newFileName = usersCommand.split(" ")[2];
-            this.fileName = SERVER_PATH + "\\" + this.fileName;
-            this.newFileName = SERVER_PATH + "\\" + this.newFileName;
+            this.fileName = Settings.SERVER_PATH + "\\" + this.fileName;
+            this.newFileName = Settings.SERVER_PATH + "\\" + this.newFileName;
         }
 
         @Override
