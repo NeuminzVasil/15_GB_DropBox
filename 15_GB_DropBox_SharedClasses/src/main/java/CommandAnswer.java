@@ -10,7 +10,7 @@ public interface CommandAnswer {
 
     WhoIsSender getWhoIsSender();
 
-    void sendingSettings(String usersCommand, WhoIsSender whoIsSender);
+    void sendingSettings(String usersCommand, WhoIsSender whoIsSender) throws IOException;
 
     enum WhoIsSender {
         SERVER, CLIENT, NULL

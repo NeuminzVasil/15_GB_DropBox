@@ -24,7 +24,7 @@ public class CommandsList {
             "~sf NAME - to sent file NAME from local to server storage. \n\t" +
             "~df NAME - to delete file NAME from server storage. \n\t" +
             "~rf NAME - to renaming file NAME from server storage. \n" +
-            "_______________________________";
+            "____________________________________________________________";
 
     /**
      * Класс получения списка файлов
@@ -44,9 +44,6 @@ public class CommandsList {
             this.files = null;
         }
 
-        /**
-         * конструктор объекта с путем к хранилищу по умолчканию
-         */
         public GetStorageInfo(String usersCommand, WhoIsSender whoIsSender) {
             this.sendingSettings(usersCommand, whoIsSender);
         }
@@ -137,10 +134,15 @@ public class CommandsList {
         private byte[] fileData;
         private WhoIsSender whoIsSender;
 
+        public GetFileFromServer() {
+            this.fileName = null;
+            this.fileData = null;
+            this.whoIsSender = WhoIsSender.NULL;
+        }
+
+
         public GetFileFromServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
+            this.sendingSettings(usersCommand, whoIsSender);
         }
 
         public String getFileName() {
@@ -158,7 +160,9 @@ public class CommandsList {
 
         @Override
         public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-
+            this.whoIsSender = whoIsSender;
+            this.fileName = usersCommand.split(" ")[1];
+            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
         }
 
         @Override
@@ -196,16 +200,19 @@ public class CommandsList {
      * Класс передачи файла от клиента серверу
      */
     public static class SendFileToServer implements Serializable, CommandAnswer {
+
         private String fileName;
         private byte[] fileData;
-
         private WhoIsSender whoIsSender;
 
+        public SendFileToServer() {
+            this.fileData = null;
+            this.fileData = null;
+            this.whoIsSender = WhoIsSender.NULL;
+        }
+
         public SendFileToServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SettingsClient.CLIENT_PATH + "\\" + fileName;
-            fileData = Files.readAllBytes(Paths.get(this.fileName).toAbsolutePath()); // NL записываем данные файла в объект
+            this.sendingSettings(usersCommand, whoIsSender);
         }
 
         public String getFileName() {
@@ -218,8 +225,11 @@ public class CommandsList {
         }
 
         @Override
-        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-
+        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) throws IOException {
+            this.whoIsSender = whoIsSender;
+            this.fileName = usersCommand.split(" ")[1];
+            this.fileName = SettingsClient.CLIENT_PATH + "\\" + fileName;
+            fileData = Files.readAllBytes(Paths.get(this.fileName).toAbsolutePath()); // NL записываем данные файла в объект
         }
 
         @Override
@@ -242,16 +252,19 @@ public class CommandsList {
      */
     public static class DeleteFile implements Serializable, CommandAnswer {
 
-        String fileName;
+        private String fileName;
         private WhoIsSender whoIsSender;
+
+        public DeleteFile() {
+            this.fileName = null;
+            whoIsSender = WhoIsSender.NULL;
+        }
 
         /**
          * конструктор объекта с путем к хранилищу по умолчканию
          */
         public DeleteFile(String usersCommand, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
+            sendingSettings(usersCommand, whoIsSender);
         }
 
         @Override
@@ -261,7 +274,9 @@ public class CommandsList {
 
         @Override
         public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-
+            this.whoIsSender = whoIsSender;
+            this.fileName = usersCommand.split(" ")[1];
+            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
         }
 
         @Override
@@ -282,19 +297,21 @@ public class CommandsList {
      */
     public static class RenamingFile implements Serializable, CommandAnswer {
 
-        String fileName;
-        String newFileName;
+        private String fileName;
+        private String newFileName;
         private WhoIsSender whoIsSender;
+
+        public RenamingFile() {
+            this.fileName = null;
+            this.newFileName = null;
+            this.whoIsSender = WhoIsSender.NULL;
+        }
 
         /**
          * конструктор объекта с путем к хранилищу по умолчканию
          */
         public RenamingFile(String usersCommand, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.newFileName = usersCommand.split(" ")[2];
-            this.fileName = SettingsServer.SERVER_PATH + "\\" + this.fileName;
-            this.newFileName = SettingsServer.SERVER_PATH + "\\" + this.newFileName;
+            this.sendingSettings(usersCommand, whoIsSender);
         }
 
         @Override
@@ -304,7 +321,11 @@ public class CommandsList {
 
         @Override
         public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-
+            this.whoIsSender = whoIsSender;
+            this.fileName = usersCommand.split(" ")[1];
+            this.newFileName = usersCommand.split(" ")[2];
+            this.fileName = SettingsServer.SERVER_PATH + "\\" + this.fileName;
+            this.newFileName = SettingsServer.SERVER_PATH + "\\" + this.newFileName;
         }
 
         @Override
@@ -327,21 +348,20 @@ public class CommandsList {
     public static class UserRegistering implements Serializable, CommandAnswer {
 
 
-        String userName;
-        String userPassword;
-        String userRegisteredID = null;
+        private String name;
+        private String password;
+        private String registeredID;
         private WhoIsSender whoIsSender;
 
-        /**
-         * конструктор объекта
-         *
-         * @param usersCommand - команда из консоли
-         * @param whoIsSender  - признак отправителья команды в сеть Client\Server
-         */
+        public UserRegistering() {
+            this.name = null;
+            this.password = null;
+            this.registeredID = null;
+            this.whoIsSender = WhoIsSender.NULL;
+        }
+
         public UserRegistering(String usersCommand, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.userName = usersCommand.split(" ")[1];
-            this.userPassword = usersCommand.split(" ")[2];
+            this.sendingSettings(usersCommand, whoIsSender);
         }
 
         @Override
@@ -351,7 +371,9 @@ public class CommandsList {
 
         @Override
         public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-
+            this.whoIsSender = whoIsSender;
+            this.name = usersCommand.split(" ")[1];
+            this.password = usersCommand.split(" ")[2];
         }
 
         @Override
@@ -360,15 +382,15 @@ public class CommandsList {
             switch (this.whoIsSender) {
                 case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
                     this.whoIsSender = WhoIsSender.SERVER;
-                    System.out.println("Reflection.SERVER.Регистрация пользователя: " + this.userName);
-                    this.userRegisteredID = ctx.pipeline().channel().id().asShortText();
+                    System.out.println("Reflection.SERVER.Регистрация пользователя: " + this.name);
+                    this.registeredID = ctx.pipeline().channel().id().asShortText();
                     ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
                     break;
 
                 case SERVER: // если отправителем был Сервер то выполняем на клиенте то что нужно клиенту
                     this.whoIsSender = WhoIsSender.CLIENT;
 
-                    System.out.println("Reflection.CLIENT.Регистрация пользователя " + this.userName + " прошла успешно: userID: " + this.userRegisteredID);
+                    System.out.println("Reflection.CLIENT.Регистрация пользователя " + this.name + " прошла успешно: userID: " + this.registeredID);
                     break;
                 default:
                     System.err.println("RenamingFile.Reflection. Пожалуйста укажите отправителя"); //log
