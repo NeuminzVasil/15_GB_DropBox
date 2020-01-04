@@ -17,14 +17,8 @@ public class ClientConsoleCommandLine implements Runnable {
      */
     public ClientConsoleCommandLine(String hostName, int port) {
 
-        Settings.HOST_NAME = hostName;
-        Settings.HOST_PORT = port;
-
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
+        SettingsClient.HOST_NAME = hostName;
+        SettingsClient.HOST_PORT = port;
 
         // запускаем клиентское подлючение к серверу
         clientNetListener = new ClientNetListener(clientName);
@@ -35,12 +29,12 @@ public class ClientConsoleCommandLine implements Runnable {
     public static void main(String[] args) {
 
         if (args.length > 0) {
-            Settings.HOST_NAME = args[0];
-            Settings.HOST_PORT = Integer.parseInt(args[1]);
+            SettingsClient.HOST_NAME = args[0];
+            SettingsClient.HOST_PORT = Integer.parseInt(args[1]);
         }
 
         // запускаем консоль с внутренним запуском клиентского подключения
-        ClientConsoleCommandLine clientConsoleCommandLine = new ClientConsoleCommandLine(Settings.HOST_NAME, Settings.HOST_PORT);
+        ClientConsoleCommandLine clientConsoleCommandLine = new ClientConsoleCommandLine(SettingsClient.HOST_NAME, SettingsClient.HOST_PORT);
         Thread clientConsoleCommandLineThread = new Thread(clientConsoleCommandLine);
         clientConsoleCommandLineThread.start();
     }
@@ -61,6 +55,11 @@ public class ClientConsoleCommandLine implements Runnable {
                 if (usersCommand.toString().toLowerCase().startsWith("~?")) {// NL обработка команды "справка"
 
                     System.out.println("commands list: ");
+
+                } else if (usersCommand.toString().toLowerCase().startsWith("~lu")) {// NL обработка команды "login user"
+
+                    clientNetListener.getSocketChannel().writeAndFlush(
+                            new CommandsList.UserRegistering(usersCommand.toString(), CommandAnswer.WhoIsSender.CLIENT));
 
                 } else if (usersCommand.toString().toLowerCase().startsWith("~si")) {// NL обработка команды "storage info"
 

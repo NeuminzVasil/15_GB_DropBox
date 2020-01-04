@@ -37,9 +37,9 @@ public class CommandsList {
             this.whoIsSender = whoIsSender;
 
             if (usersCommand.split(" ")[1].equals("~s"))
-                file = new File(Settings.SERVER_PATH.toString());
+                file = new File(SettingsServer.SERVER_PATH.toString());
             else
-                file = new File(Settings.CLIENT_PATH.toString());
+                file = new File(SettingsClient.CLIENT_PATH.toString()); //NL когда метод выполняется на стороне клиента сервер не знает о существовании этого пути.
 
             this.files = Arrays.asList(file.listFiles());
         }
@@ -114,7 +114,7 @@ public class CommandsList {
         public GetFileFromServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
-            this.fileName = Settings.SERVER_PATH + "\\" + fileName;
+            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
         }
 
         public String getFileName() {
@@ -143,7 +143,7 @@ public class CommandsList {
                 case SERVER: // если отправителем был Сервер то выполняем на клиенте то что нужно клиенту
 
                     try {
-                        this.fileName = Settings.CLIENT_PATH + "\\" + Paths.get(this.fileName).getFileName().toString();
+                        this.fileName = SettingsClient.CLIENT_PATH + "\\" + Paths.get(this.fileName).getFileName().toString();
                         Files.write(Paths.get(this.fileName), this.fileData, StandardOpenOption.CREATE_NEW); // NL создаем на клиенте файл из объекта
                     } catch (IOException e) {
                         System.err.println("не могу записать файл: " + this.getFileName());
@@ -173,7 +173,7 @@ public class CommandsList {
         public SendFileToServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
-            this.fileName = Settings.CLIENT_PATH + "\\" + fileName;
+            this.fileName = SettingsClient.CLIENT_PATH + "\\" + fileName;
             fileData = Files.readAllBytes(Paths.get(this.fileName).toAbsolutePath()); // NL записываем данные файла в объект
         }
 
@@ -189,7 +189,7 @@ public class CommandsList {
         @Override
         public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
             try {
-                this.fileName = Settings.SERVER_PATH + "\\" + Paths.get(this.fileName).getFileName();
+                this.fileName = SettingsServer.SERVER_PATH + "\\" + Paths.get(this.fileName).getFileName();
                 Files.write(Paths.get(this.fileName), this.fileData, StandardOpenOption.CREATE_NEW);
             } catch (IOException e) {
                 System.err.println("не могу сохранить файл: " + this.getFileName() + " на сервере.");
@@ -215,7 +215,7 @@ public class CommandsList {
         public DeleteFile(String usersCommand, WhoIsSender whoIsSender) {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
-            this.fileName = Settings.SERVER_PATH + "\\" + fileName;
+            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
         }
 
         @Override
@@ -252,8 +252,8 @@ public class CommandsList {
             this.whoIsSender = whoIsSender;
             this.fileName = usersCommand.split(" ")[1];
             this.newFileName = usersCommand.split(" ")[2];
-            this.fileName = Settings.SERVER_PATH + "\\" + this.fileName;
-            this.newFileName = Settings.SERVER_PATH + "\\" + this.newFileName;
+            this.fileName = SettingsServer.SERVER_PATH + "\\" + this.fileName;
+            this.newFileName = SettingsServer.SERVER_PATH + "\\" + this.newFileName;
         }
 
         @Override
@@ -275,4 +275,53 @@ public class CommandsList {
         }
     }
 
+    /**
+     * Класс регистрации клиента на сервере на стороне сервера
+     */
+    public static class UserRegistering implements Serializable, CommandAnswer {
+
+        String userName;
+        String userPassword;
+        String userRegisteredID = null;
+        private WhoIsSender whoIsSender;
+
+        /**
+         * конструктор объекта
+         *
+         * @param usersCommand - команда из консоли
+         * @param whoIsSender  - признак отправителья команды в сеть Client\Server
+         */
+        public UserRegistering(String usersCommand, WhoIsSender whoIsSender) {
+            this.whoIsSender = whoIsSender;
+            this.userName = usersCommand.split(" ")[1];
+            this.userPassword = usersCommand.split(" ")[2];
+        }
+
+        @Override
+        public WhoIsSender getWhoIsSender() {
+            return this.whoIsSender;
+        }
+
+        @Override
+        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+
+            switch (this.whoIsSender) {
+                case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
+                    this.whoIsSender = WhoIsSender.SERVER;
+                    System.out.println("Reflection.SERVER.Регистрация пользователя: " + this.userName);
+                    this.userRegisteredID = ctx.pipeline().channel().id().asShortText();
+                    ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
+                    break;
+
+                case SERVER: // если отправителем был Сервер то выполняем на клиенте то что нужно клиенту
+                    this.whoIsSender = WhoIsSender.CLIENT;
+
+                    System.out.println("Reflection.CLIENT.Регистрация пользователя " + this.userName + " прошла успешно: userID: " + this.userRegisteredID);
+                    break;
+                default:
+                    System.err.println("RenamingFile.Reflection. Пожалуйста укажите отправителя"); //log
+            }
+
+        }
+    }
 }

@@ -49,7 +49,7 @@ public class DBConnect {
 
     public static Connection connectToDB() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
-        connection = DriverManager.getConnection("jdbc:sqlite:" + Settings.DB_DESTINATION); // NL если подключаемся удаленно то в этом месте указываем IP и PORT
+        connection = DriverManager.getConnection("jdbc:sqlite:" + SettingsServer.DB_DESTINATION); // NL если подключаемся удаленно то в этом месте указываем IP и PORT
         statement = connection.createStatement();
         return connection;
     }

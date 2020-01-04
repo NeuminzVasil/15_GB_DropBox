@@ -11,6 +11,7 @@
     <modules>
         <module>15_GB_DropBox_Client</module>
         <module>15_GB_DropBox_Server</module>
+        <module>15_GB_DropBox_SharedClasses</module>
     </modules>
 
     <properties> <!-- версия SDK -->
@@ -20,10 +21,10 @@
 
     <dependencies>
 
-        <!-- зависимость на 15_GB_DropBox_Server для 15_GB_DropBox_Client -->
+        <!-- зависимость на модуль 15_GB_DropBox_SharedClasses с общими классами -->
         <dependency>
             <groupId>org.geekbrains.ru</groupId>
-            <artifactId>15_GB_DropBox_Server</artifactId>
+            <artifactId>15_GB_DropBox_SharedClasses</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

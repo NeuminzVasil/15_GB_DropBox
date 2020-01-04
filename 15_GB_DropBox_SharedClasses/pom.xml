@@ -9,16 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>15_GB_DropBox_Client</artifactId>
+    <artifactId>15_GB_DropBox_SharedClasses</artifactId>
 
-    <dependencies>
-
-        <!--        <dependency>
-                    <groupId>org.geekbrains.ru</groupId>
-                    <artifactId>15_GB_DropBox_SharedClasses</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <scope>compile</scope>
-                </dependency>-->
-    </dependencies>
 
 </project>

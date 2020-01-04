@@ -36,7 +36,7 @@ public class ServerNetListener implements Runnable {
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
 //                    socketChannel.pipeline().addLast(handlerName + ".BeforeEncodingInformer", new MyOutboundInformer(handlerName.concat(".BeforeEncodingInformer")));
 //                    socketChannel.pipeline().addLast(handlerName + ".BeforeDecodingInformer", new MyInboundInformer(handlerName.concat(".BeforeDecodingInformer")));
-                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(Settings.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
+                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsServer.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
 //                    socketChannel.pipeline().addLast(handlerName + ".AfterDecodingInformer", new MyInboundInformer(handlerName.concat(".AfterDecodingInformer")));
                     socketChannel.pipeline().addLast(new Reflector(handlerName));
                 }
@@ -46,7 +46,7 @@ public class ServerNetListener implements Runnable {
                     .channel(NioServerSocketChannel.class) // указание канала для подключения новых клиентов
                     .childHandler(channelInitializer).childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            channelFuture = serverBootstrap.bind(Settings.HOST_PORT).sync();// запуск прослушивания порта 8189 для подключения клиентов
+            channelFuture = serverBootstrap.bind(SettingsServer.HOST_PORT).sync();// запуск прослушивания порта 8189 для подключения клиентов
             System.out.println("ServerNetListener.Works.");
 //             NL - сервер. здесь происходит магия.
 //                - блокирующая команда.

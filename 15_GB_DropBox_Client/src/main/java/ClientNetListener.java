@@ -50,7 +50,7 @@ public class ClientNetListener implements Runnable {
 
             clientBootstrap.channel(NioSocketChannel.class);
 
-            clientBootstrap.remoteAddress(new InetSocketAddress(Settings.HOST_NAME, Settings.HOST_PORT));
+            clientBootstrap.remoteAddress(new InetSocketAddress(SettingsClient.HOST_NAME, SettingsClient.HOST_PORT));
 
             channelInitializer = new ChannelInitializer<SocketChannel>() {
                 @Override
@@ -61,7 +61,7 @@ public class ClientNetListener implements Runnable {
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
 //                    socketChannel.pipeline().addLast(handlerName + ".BeforeEncodingInformer", new MyOutboundInformer(handlerName.concat(".BeforeEncodingInformer")));
 //                    socketChannel.pipeline().addLast(handlerName + ".BeforeDecodingInformer", new MyInboundInformer(handlerName.concat(".BeforeDecodingInformer")));
-                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(Settings.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
+                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsClient.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
 //                    socketChannel.pipeline().addLast(handlerName + ".AfterDecodingInformer", new MyInboundInformer(handlerName.concat(".AfterDecodingInformer")));
                     socketChannel.pipeline().addLast(new Reflector(handlerName));
                 }

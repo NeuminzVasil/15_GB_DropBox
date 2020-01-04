@@ -33,6 +33,9 @@ public class Reflector extends ChannelInboundHandlerAdapter {
             } else if (msg instanceof CommandsList.SendFileToServer) {
                 ((CommandsList.SendFileToServer) msg).Reflection(ctx, msg, ((CommandsList.SendFileToServer) msg).getWhoIsSender());
 
+            } else if (msg instanceof CommandsList.UserRegistering) {
+                ((CommandsList.UserRegistering) msg).Reflection(ctx, msg, ((CommandsList.UserRegistering) msg).getWhoIsSender());
+
             } else if (msg instanceof CommandsList.GetFileFromServer) {
                 ((CommandsList.GetFileFromServer) msg).Reflection(ctx, msg, ((CommandsList.GetFileFromServer) msg).getWhoIsSender());
 
