@@ -16,6 +16,15 @@ import java.util.List;
  */
 public class CommandsList {
 
+    // to get this information type ~? at console
+    static final String commandsInfo = "Commands available: \n\t" +
+            "~si ~s  - to get server storage (files) info. \n\t" +
+            "~si ~r  - to get client storage (files) info. \n\t" +
+            "~gf NAME - to get file NAME from server to local. \n\t" +
+            "~sf NAME - to sent file NAME from local to server storage. \n\t" +
+            "~df NAME - to delete file NAME from server storage. \n\t" +
+            "~rf NAME - to renaming file NAME from server storage. \n" +
+            "_______________________________";
 
     /**
      * Класс получения списка файлов
@@ -29,19 +38,17 @@ public class CommandsList {
         private File file;
         private List<File> files;
 
+        public GetStorageInfo() {
+            this.whoIsSender = WhoIsSender.NULL;
+            this.file = null;
+            this.files = null;
+        }
+
         /**
          * конструктор объекта с путем к хранилищу по умолчканию
          */
         public GetStorageInfo(String usersCommand, WhoIsSender whoIsSender) {
-
-            this.whoIsSender = whoIsSender;
-
-            if (usersCommand.split(" ")[1].equals("~s"))
-                file = new File(SettingsServer.SERVER_PATH.toString());
-            else
-                file = new File(SettingsClient.CLIENT_PATH.toString()); //NL когда метод выполняется на стороне клиента сервер не знает о существовании этого пути.
-
-            this.files = Arrays.asList(file.listFiles());
+            this.sendingSettings(usersCommand, whoIsSender);
         }
 
         /**
@@ -73,6 +80,7 @@ public class CommandsList {
 
         /**
          * Переопределение toString для обекта.
+         *
          * @return строковое представление объекта
          */
         @Override
@@ -84,8 +92,26 @@ public class CommandsList {
             return res.toString();
         }
 
+
         @Override
-        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+            try {
+                this.whoIsSender = whoIsSender;
+
+                if (usersCommand.split(" ")[1].equals("~s"))
+                    file = new File(SettingsServer.SERVER_PATH.toString());
+                else
+                    file = new File(SettingsClient.CLIENT_PATH.toString()); //NL когда метод выполняется на стороне клиента сервер не знает о существовании этого пути.
+
+                this.files = Arrays.asList(file.listFiles());
+
+            } catch (Exception e) {
+                e.getMessage();
+            }
+        }
+
+        @Override
+        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
             switch (this.whoIsSender) {
                 case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
                     this.whoIsSender = WhoIsSender.SERVER;
@@ -131,7 +157,12 @@ public class CommandsList {
         }
 
         @Override
-        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) throws IOException {
+        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+
+        }
+
+        @Override
+        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) throws IOException {
 
             switch (this.whoIsSender) {
                 case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
@@ -187,7 +218,12 @@ public class CommandsList {
         }
 
         @Override
-        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+
+        }
+
+        @Override
+        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
             try {
                 this.fileName = SettingsServer.SERVER_PATH + "\\" + Paths.get(this.fileName).getFileName();
                 Files.write(Paths.get(this.fileName), this.fileData, StandardOpenOption.CREATE_NEW);
@@ -224,7 +260,12 @@ public class CommandsList {
         }
 
         @Override
-        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+
+        }
+
+        @Override
+        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
 
             try {
                 Files.delete(Paths.get(this.fileName));
@@ -262,7 +303,12 @@ public class CommandsList {
         }
 
         @Override
-        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+
+        }
+
+        @Override
+        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
 
             try {
                 Files.move(Paths.get(this.fileName), Paths.get(this.newFileName), StandardCopyOption.REPLACE_EXISTING);
@@ -279,6 +325,7 @@ public class CommandsList {
      * Класс регистрации клиента на сервере на стороне сервера
      */
     public static class UserRegistering implements Serializable, CommandAnswer {
+
 
         String userName;
         String userPassword;
@@ -303,7 +350,12 @@ public class CommandsList {
         }
 
         @Override
-        public void Reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+
+        }
+
+        @Override
+        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
 
             switch (this.whoIsSender) {
                 case CLIENT: // если отправителем был клиент то выполняем ответ от сервера

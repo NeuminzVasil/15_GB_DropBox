@@ -8,14 +8,25 @@ public class ClientConsoleCommandLine implements Runnable {
     private String clientName = "ClientConsoleCommandLine";
     private ClientNetListener clientNetListener; // ссылка на клиентское подключение
     private InputStreamReader inputStream = new InputStreamReader(System.in); // объект чтения данных из потока консоли
-    private BufferedReader BufferedReader = new BufferedReader(inputStream); // объект чтения данных из консоли
+    /**
+     * набор объектов стандартных команд.
+     * чтобы не создавать каждый раз новые компанды будем исопльзвоать повторно заготовки
+     * однако это не исключает создание НОВЫХ объектов команд.
+     */
+    CommandsList.GetStorageInfo getStorageInfo = new CommandsList.GetStorageInfo();
     private StringBuilder usersCommand = new StringBuilder(); // введенная пользователем команда
+    CommandsList.GetFileFromServer getFileFromServer = new CommandsList.GetFileFromServer("gf demo.txt", CommandAnswer.WhoIsSender.CLIENT);
+    CommandsList.SendFileToServer sendFileToServer = new CommandsList.SendFileToServer("sf demo.txt", CommandAnswer.WhoIsSender.CLIENT);
+    CommandsList.DeleteFile deleteFile = new CommandsList.DeleteFile("df demo.txt", CommandAnswer.WhoIsSender.CLIENT);
+    CommandsList.RenamingFile renamingFile = new CommandsList.RenamingFile("rf demo.txt demo1.txt ", CommandAnswer.WhoIsSender.CLIENT);
+    CommandsList.UserRegistering userRegistering = new CommandsList.UserRegistering("lu l1 p1", CommandAnswer.WhoIsSender.CLIENT);
+    private BufferedReader bufferedReader = new BufferedReader(inputStream); // объект чтения данных из консоли
 
 
     /**
      * констуктор консольной программы с созданием клиентского подключения
      */
-    public ClientConsoleCommandLine(String hostName, int port) {
+    public ClientConsoleCommandLine(String hostName, int port) throws IOException {
 
         SettingsClient.HOST_NAME = hostName;
         SettingsClient.HOST_PORT = port;
@@ -26,7 +37,7 @@ public class ClientConsoleCommandLine implements Runnable {
         clientNetListenerThread.start();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         if (args.length > 0) {
             SettingsClient.HOST_NAME = args[0];
@@ -49,22 +60,22 @@ public class ClientConsoleCommandLine implements Runnable {
         try {
             while (true) { // NL цикл чтения команд с консоли пользователя
 
-                if (!!(usersCommand.insert(0, BufferedReader.readLine()).toString().toLowerCase().equals("~#stop")))
+                if (!!(usersCommand.insert(0, bufferedReader.readLine()).toString().toLowerCase().equals("~#stop"))) //NL обработка команды "стоп консоль"
                     break;
 
-                if (usersCommand.toString().toLowerCase().startsWith("~?")) {// NL обработка команды "справка"
+                if (usersCommand.toString().toLowerCase().startsWith("~?")) {// NL обработка команды "справка" +
 
-                    System.out.println("commands list: ");
+                    System.out.println(CommandsList.commandsInfo);
+
+                } else if (usersCommand.toString().toLowerCase().startsWith("~si")) {// NL обработка команды "storage info" +
+
+                    getStorageInfo.sendingSettings(usersCommand.toString(), CommandAnswer.WhoIsSender.CLIENT);
+                    clientNetListener.getSocketChannel().writeAndFlush(getStorageInfo);
 
                 } else if (usersCommand.toString().toLowerCase().startsWith("~lu")) {// NL обработка команды "login user"
 
                     clientNetListener.getSocketChannel().writeAndFlush(
                             new CommandsList.UserRegistering(usersCommand.toString(), CommandAnswer.WhoIsSender.CLIENT));
-
-                } else if (usersCommand.toString().toLowerCase().startsWith("~si")) {// NL обработка команды "storage info"
-
-                    clientNetListener.getSocketChannel().writeAndFlush(
-                            new CommandsList.GetStorageInfo(usersCommand.toString(), CommandAnswer.WhoIsSender.CLIENT));
 
                 } else if (usersCommand.toString().toLowerCase().startsWith("~gf")) {// NL обработка команды "get file"
 

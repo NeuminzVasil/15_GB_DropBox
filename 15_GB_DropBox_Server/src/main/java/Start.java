@@ -6,7 +6,7 @@ public class Start {
 
         if (args.length > 0) {
             //SettingsServer.HOST_NAME = args[0];
-            SettingsServer.HOST_PORT = Integer.parseInt(args[1]);
+            SettingsServer.HOST_PORT = Integer.parseInt(args[0]);
         }
 
         // запускаем сервер

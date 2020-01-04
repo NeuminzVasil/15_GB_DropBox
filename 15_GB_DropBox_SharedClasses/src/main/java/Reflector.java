@@ -28,22 +28,22 @@ public class Reflector extends ChannelInboundHandlerAdapter {
             // NL обработка входящего объекта. Объект сам знает что от него требуется. см. Reflector()
 
             if (msg instanceof CommandsList.GetStorageInfo) {
-                ((CommandsList.GetStorageInfo) msg).Reflection(ctx, msg, ((CommandsList.GetStorageInfo) msg).getWhoIsSender());
+                ((CommandsList.GetStorageInfo) msg).reflection(ctx, msg, ((CommandsList.GetStorageInfo) msg).getWhoIsSender());
 
             } else if (msg instanceof CommandsList.SendFileToServer) {
-                ((CommandsList.SendFileToServer) msg).Reflection(ctx, msg, ((CommandsList.SendFileToServer) msg).getWhoIsSender());
+                ((CommandsList.SendFileToServer) msg).reflection(ctx, msg, ((CommandsList.SendFileToServer) msg).getWhoIsSender());
 
             } else if (msg instanceof CommandsList.UserRegistering) {
-                ((CommandsList.UserRegistering) msg).Reflection(ctx, msg, ((CommandsList.UserRegistering) msg).getWhoIsSender());
+                ((CommandsList.UserRegistering) msg).reflection(ctx, msg, ((CommandsList.UserRegistering) msg).getWhoIsSender());
 
             } else if (msg instanceof CommandsList.GetFileFromServer) {
-                ((CommandsList.GetFileFromServer) msg).Reflection(ctx, msg, ((CommandsList.GetFileFromServer) msg).getWhoIsSender());
+                ((CommandsList.GetFileFromServer) msg).reflection(ctx, msg, ((CommandsList.GetFileFromServer) msg).getWhoIsSender());
 
             } else if (msg instanceof CommandsList.DeleteFile) {
-                ((CommandsList.DeleteFile) msg).Reflection(ctx, msg, ((CommandsList.DeleteFile) msg).getWhoIsSender());
+                ((CommandsList.DeleteFile) msg).reflection(ctx, msg, ((CommandsList.DeleteFile) msg).getWhoIsSender());
 
             } else if (msg instanceof CommandsList.RenamingFile) {
-                ((CommandsList.RenamingFile) msg).Reflection(ctx, msg, ((CommandsList.RenamingFile) msg).getWhoIsSender());
+                ((CommandsList.RenamingFile) msg).reflection(ctx, msg, ((CommandsList.RenamingFile) msg).getWhoIsSender());
 
             } else {
                 System.out.println("Reflector: unknown command!");
