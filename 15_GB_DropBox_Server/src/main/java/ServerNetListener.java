@@ -48,8 +48,7 @@ public class ServerNetListener implements Runnable {
 
             channelFuture = serverBootstrap.bind(SettingsServer.HOST_PORT).sync();// запуск прослушивания порта 8189 для подключения клиентов
             System.out.println("ServerNetListener.Works.");
-//             NL - сервер. здесь происходит магия.
-//                - блокирующая команда.
+//  NL сервер. здесь происходит блокирующая магия.
 
             channelFuture.channel().closeFuture().sync();// ожидание завершения работы сервера
         } catch (InterruptedException e) {

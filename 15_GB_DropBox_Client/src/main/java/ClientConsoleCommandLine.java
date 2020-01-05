@@ -60,8 +60,8 @@ public class ClientConsoleCommandLine implements Runnable {
                         consoleCommand.toString().toLowerCase().startsWith("~df") ||
                         consoleCommand.toString().toLowerCase().startsWith("~rf")) {
 
-                    networkCommand.sendingSettings(consoleCommand.toString(), CommandAnswer.WhoIsSender.CLIENT);
-                    clientNetListener.getSocketChannel().writeAndFlush(networkCommand);
+                    networkCommand.sendingSettings(consoleCommand.toString(), CommandAnswer.WhoIsSender.CLIENT);  // NL подготовка полезной команды
+                    clientNetListener.getSocketChannel().writeAndFlush(networkCommand); // NL обработка полезной команды
 
                 } else { // NL обработка неизвестной команды
                     System.err.println("Console: unknown command!");
@@ -74,8 +74,7 @@ public class ClientConsoleCommandLine implements Runnable {
 
         } catch (
                 IOException e) {
-            System.err.println("ClientConsoleCommandLine.consoleSender().error");// log
-            e.printStackTrace();
+            e.getMessage();
         }
 
     }

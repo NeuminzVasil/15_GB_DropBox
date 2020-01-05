@@ -16,7 +16,7 @@ public class MyOutboundInformer extends ChannelOutboundHandlerAdapter {
         System.out.println(handlerName +
                 ".MyOutboundInformer.write(): " +
                 "(msg.getClass():" + msg.getClass() +
-                ") (remoteAddress: " + ctx.channel().remoteAddress() + ")"); // log
+                ") (remoteAddress: " + ctx.channel().remoteAddress() + ")");
 
         //ctx.write(msg); // NL отправляет сообщение в сторону OUT
         //ctx.writeAndFlush(msg); // NL отправляет сообщение в сторону OUT

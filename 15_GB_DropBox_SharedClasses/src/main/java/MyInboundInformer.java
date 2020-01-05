@@ -10,10 +10,7 @@ public class MyInboundInformer extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println(handlerName +
-                ".MyInboundInformer.channelRead(): " +
-                "(msg.getClass(): " + msg.getClass() + ") " +
-                "(remoteAddress: " + ctx.channel().remoteAddress() + ")"); // log
+
         //ctx.write(msg); // NL отправляет сообщение в сторону OUT
         //ctx.writeAndFlush(msg); // NL отправляет сообщение в сторону OUT
         //ctx.fireChannelRead(msg); //ctx.flush(); // NL отправляет сообщение в сторону IN
@@ -22,10 +19,6 @@ public class MyInboundInformer extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.err.println(handlerName +
-                ".MyInboundInformer.exceptionCaught(): " +
-                "cause:" + cause.getMessage() + ". " +
-                "(remoteAddress: " + ctx.channel().remoteAddress() + ")"); // log
-        cause.printStackTrace();
+        cause.getMessage();
     }
 }

@@ -43,7 +43,7 @@ public class ClientNetListener implements Runnable {
     @Override
     public void run() {
 
-        // NL клиент. подключемся к серверу
+        // NL клиент. подключение к серверу
         try {
 
             clientBootstrap.group(nioEventLoopGroup);
@@ -71,8 +71,7 @@ public class ClientNetListener implements Runnable {
             System.out.println("ClientNetListener.Works.");
             channelFuture = clientBootstrap.connect().sync();
 
-//             NL - клиент. здесь происходит магия.
-//                - блокирующая команда.
+// NL клиент. Здесь происходит блокирующая магия.
 
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {

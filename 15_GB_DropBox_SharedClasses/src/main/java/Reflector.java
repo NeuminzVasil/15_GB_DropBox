@@ -13,17 +13,14 @@ public class Reflector extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
 
-        if (msg == null) {
-            System.out.println("Reflector.channelRead().msg = NULL");//log
-            return;
-        }
-
         try {
             ((CommandsList) msg).reflection(ctx, msg, ((CommandsList) msg).getWhoIsSender()); // NL обработка входящего объекта. Объект сам знает что от него требуется. см. Reflector()
         } catch (Exception e) {
             e.getMessage();
         } finally {
-            ReferenceCountUtil.release(msg); // можно использовать in.release() // TODO: спросить Тренера в чем разница.
+            ReferenceCountUtil.release(msg); // можно использовать in.release() // TODO: спросить Тренера: - 1.в чем разница
+//                                                                                  2. Есть подозрение, что я не релизю обьеты, гуляющие по сети,
+//                                                                                  потому что не понял где и как жто делать.
         }
     }
 
@@ -33,10 +30,7 @@ public class Reflector extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         ctx.close();
-        System.err.println(
-                handlerName + ".Reflector.channelRead().error:  " + ctx.channel().remoteAddress() + "/" + ctx.channel().id().asShortText());//log
         cause.getMessage();
-
     }
 
 }

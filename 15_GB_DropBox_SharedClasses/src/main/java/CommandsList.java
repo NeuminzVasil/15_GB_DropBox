@@ -217,7 +217,7 @@ public class CommandsList implements Serializable, CommandAnswer {
                 this.whoIsSender = WhoIsSender.NULL;
                 break;
             default:
-                System.err.println("RenamingFile.Reflection. Укажите отправителя"); //log
+                System.err.println("RenamingFile.Reflection. Укажите отправителя");
                 break;
         }
 
@@ -232,7 +232,7 @@ public class CommandsList implements Serializable, CommandAnswer {
             case CLIENT: //я на стороне сервера
                 try {
                     Files.delete(Paths.get(SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterFirst));
-                    System.out.println("файл: " + this.mnemonicParameterFirst + " удален из хранилища на сервере."); // log
+                    System.out.println("файл: " + this.mnemonicParameterFirst + " удален из хранилища на сервере.");
                     this.mnemonicParameterSecond = "true";
                 } catch (IOException e) {
                     System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно удалить из хранилища на сервере.");
@@ -323,7 +323,7 @@ public class CommandsList implements Serializable, CommandAnswer {
                 this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "\\" + Paths.get(this.mnemonicParameterFirst).getFileName().toString();
                 try {
                     Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL создаем на клиенте файл из объекта
-                    System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в локальном хранилище"); //log
+                    System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в локальном хранилище");
                 } catch (IOException e) {
                     System.err.println("не могу записать файл: " + this.mnemonicParameterFirst + " в локальном хранилище");
                     e.getMessage();
@@ -333,7 +333,7 @@ public class CommandsList implements Serializable, CommandAnswer {
                 break;
 
             default:
-                System.err.println("MessageCommand. Укажите отправителя"); //log
+                System.err.println("MessageCommand. Укажите отправителя");
                 break;
         }
     }
@@ -352,7 +352,7 @@ public class CommandsList implements Serializable, CommandAnswer {
 
                 try {
                     Files.move(Paths.get(this.mnemonicParameterFirst), Paths.get(this.mnemonicParameterSecond), StandardCopyOption.REPLACE_EXISTING);
-                    System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере."); // log
+                    System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере.");
                 } catch (IOException e) {
                     System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно переименовать на сервере в " + this.mnemonicParameterSecond);
                     this.mnemonicParameterSecond = "false";
@@ -366,13 +366,13 @@ public class CommandsList implements Serializable, CommandAnswer {
                 if (this.mnemonicParameterSecond.equals("false")) {
                     System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно переименовать на сервере");
                 } else
-                    System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере."); // log
+                    System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере.");
 
                 this.whoIsSender = WhoIsSender.NULL;
                 break;
 
             default:
-                System.err.println("MessageCommand. Укажите отправителя"); //log
+                System.err.println("MessageCommand. Укажите отправителя");
                 break;
 
         }
