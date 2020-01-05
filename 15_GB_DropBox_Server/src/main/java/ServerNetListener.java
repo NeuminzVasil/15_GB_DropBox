@@ -10,11 +10,14 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class ServerNetListener implements Runnable {
     private String handlerName;
     private EventLoopGroup bossGroup = new NioEventLoopGroup(); // пул потоков для организации подключения
     private EventLoopGroup workerGroup = new NioEventLoopGroup(); // пул потоков для обработки данных
-    private ServerBootstrap serverBootstrap = new ServerBootstrap(); //ServerBootstrap - для предварительных настроек сервера
+    private ServerBootstrap serverBootstrap = new ServerBootstrap(); //ServerBootstrap для предварительных настроек NETTY сервера
     private SocketChannel socketChannel;
     private ChannelFuture channelFuture;
     private ChannelInitializer channelInitializer;
@@ -32,12 +35,8 @@ public class ServerNetListener implements Runnable {
                 protected void initChannel(SocketChannel ch) { // настройка конвеера для каждого подключившегося клиента
                     socketChannel = ch;
                     //socketChannel.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
-//                    socketChannel.pipeline().addLast(handlerName + ".AfterEncodingInformer", new MyOutboundInformer(handlerName.concat(".AfterEncodingInformer")));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
-//                    socketChannel.pipeline().addLast(handlerName + ".BeforeEncodingInformer", new MyOutboundInformer(handlerName.concat(".BeforeEncodingInformer")));
-//                    socketChannel.pipeline().addLast(handlerName + ".BeforeDecodingInformer", new MyInboundInformer(handlerName.concat(".BeforeDecodingInformer")));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsServer.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
-//                    socketChannel.pipeline().addLast(handlerName + ".AfterDecodingInformer", new MyInboundInformer(handlerName.concat(".AfterDecodingInformer")));
                     socketChannel.pipeline().addLast(new Reflector(handlerName));
                 }
             };

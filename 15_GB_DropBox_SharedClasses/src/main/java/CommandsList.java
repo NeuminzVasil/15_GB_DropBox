@@ -27,21 +27,17 @@ import java.util.List;
 public class CommandsList implements Serializable, CommandAnswer {
 
     // to get this information type ~? at console
-    static final String commandsInfo = "Commands available: \n\t" +
-            "~si ~s  - to get server storage (files) info. \n\t" +
-            "~si ~r  - to get client storage (files) info. \n\t" +
-            "~gf NAME - to get file NAME from server to local. \n\t" +
-            "~sf NAME - to sent file NAME from local to server storage. \n\t" +
-            "~df NAME - to delete file NAME from server storage. \n\t" +
-            "~rf NAME - to renaming file NAME from server storage. \n" +
-            "____________________________________________________________";
+    static final String commandsInfo = "Commands available: \n\t~si ~s  - to get server storage (files) info. \n\t" +
+            "~si ~r  - to get client storage (files) info. \n\t~gf NAME - to get file NAME from server to local. \n\t" +
+            "~sf NAME - to sent file NAME from local to server storage. \n\t~df NAME - to delete file NAME from server storage. \n\t" +
+            "~rf NAME - to renaming file NAME from server storage. \n____________________________________________________________";
 
     private CommandAnswer.WhoIsSender whoIsSender;
     private String mnemonicCode;
     private String mnemonicParameterFirst;
     private String mnemonicParameterSecond;
     private byte[] fileData;
-    private String registeredID;
+    private String registeredUserID;
     private List<File> files;
 
     public CommandsList() {
@@ -53,85 +49,6 @@ public class CommandsList implements Serializable, CommandAnswer {
     }
 
     /**
-     * метод обнуления объекта команнды после выоплнения
-     */
-    private void clearCommand() {
-        this.whoIsSender = CommandAnswer.WhoIsSender.NULL;
-        this.files = null;
-        this.fileData = null;
-        this.registeredID = null;
-        this.mnemonicCode = null; // команда
-        this.mnemonicParameterFirst = null; // первый параметр ~s, ~name
-        this.mnemonicParameterSecond = null; // второй параметр ~filename
-    }
-
-    /**
-     * Метод получения отправителя пакета
-     *
-     * @return - отправитель
-     */
-    @Override
-    public WhoIsSender getWhoIsSender() {
-        return this.whoIsSender;
-    }
-
-    /**
-     * Метод получения списка файлов в хранилище
-     *
-     * @return - List файлов
-     */
-    public List<File> getFiles() {
-        return this.files;
-    }
-
-    /**
-     * Переопределение toString для обекта.
-     *
-     * @return строковое представление объекта
-     */
-    @Override
-    public String toString() {
-        return "CommandsList{" +
-                "whoIsSender=" + whoIsSender +
-                ", fileData=" + Arrays.toString(fileData) +
-                ", registeredID='" + registeredID + '\'' +
-                ", files=" + files +
-                ", mnemonicCode='" + mnemonicCode + '\'' +
-                ", mnemonicParameterFirst='" + mnemonicParameterFirst + '\'' +
-                ", mnemonicParameterSecond='" + mnemonicParameterSecond + '\'' +
-                '}';
-    }
-
-    @Override
-    public void sendingSettings(String usersCommand, CommandAnswer.WhoIsSender whoIsSender) {
-        this.whoIsSender = whoIsSender;
-        switch (usersCommand.split(" ").length) {
-            case 3: {
-                this.mnemonicParameterSecond = usersCommand.split(" ")[2];
-            }
-            case 2: {
-                this.mnemonicParameterFirst = usersCommand.split(" ")[1];
-            }
-            case 1: {
-                this.mnemonicCode = usersCommand.split(" ")[0];
-                break;
-            }
-            default:
-                System.out.println("wrong command");
-                break;
-        }
-
-        if (this.mnemonicCode.equals("~sf")) { // отправляемый в сеть объект-файл уже должен быть с данными поэтому заполняем здесь.
-            try {
-                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "\\" + this.mnemonicParameterFirst;
-                this.fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst).toAbsolutePath()); // NL записываем данные файла в объект
-            } catch (Exception e) {
-                System.err.println("не могу прочитать файл: " + this.mnemonicParameterFirst + " на локальном хранилище.");
-            }
-        }
-    }
-
-    /**
      * Метод получения списка файлов
      * сторона получения файлов указывыается первым параметорм команды
      * ~si ~s получение списка файлов на стороне сервера
@@ -140,10 +57,18 @@ public class CommandsList implements Serializable, CommandAnswer {
     @Override
     public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
 
+        if (this.mnemonicCode.toLowerCase().startsWith("~lu"))
+            logonUser(ctx); // NL до регистрации доступна только одна команда
+
+        if (this.registeredUserID == null) {
+            System.err.println("Авторизируйтесь командой ~lu NAME PASSWORD");
+            return;
+        }
+
         System.out.println("incoming command: " + this.mnemonicCode + " " + this.mnemonicParameterFirst + " " + this.mnemonicParameterSecond);
 
-        if (this.mnemonicCode.toLowerCase().startsWith("~si")) getServerInfo(ctx);
-        else if (this.mnemonicCode.toLowerCase().startsWith("~lu")) logonUser(ctx);
+        if (this.mnemonicCode.toLowerCase().startsWith("~si"))
+            getServerInfo(ctx); // NL после регистрации доступны все команды
         else if (this.mnemonicCode.toLowerCase().startsWith("~df")) deleteFile(ctx);
         else if (this.mnemonicCode.toLowerCase().startsWith("~sf")) sendFile(ctx);
         else if (this.mnemonicCode.toLowerCase().startsWith("~gf")) getFile(ctx);
@@ -152,7 +77,6 @@ public class CommandsList implements Serializable, CommandAnswer {
 
         if (whoIsSender.equals(WhoIsSender.NULL)) this.clearCommand();
     }
-
 
     /**
      * Метод получеия списка хранилища файлов
@@ -205,26 +129,31 @@ public class CommandsList implements Serializable, CommandAnswer {
 
         switch (this.whoIsSender) {
 
-            case CLIENT: // я на стороне сервера
+            case CLIENT: // я на стороне сервера, хочу получить идетификационный номер и занести себя в лист зарегистрированных пользователей.
                 this.whoIsSender = WhoIsSender.SERVER;
                 System.out.println("Регистрация пользователя: " + this.mnemonicParameterFirst);
-                this.registeredID = ctx.pipeline().channel().id().asShortText();
+                // NL именно здесь нужно запрограммить : разрешается или запрещается следующая строчка ,
+                //  1) подключение к базе данных
+                //  2) выяснение есть ли такой пользователь в БД
+                //  3) если нет то пропустить две следующие строчки
+
+                this.registeredUserID = ctx.pipeline().channel().id().asShortText();
+                UsersOnLineList.addRegisteredUserID(this.registeredUserID, this.mnemonicParameterFirst);
                 ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
                 break;
 
-            case SERVER: // я на стороне клиента
-                System.out.println("Регистрация пользователя " + this.mnemonicParameterFirst + " прошла успешно: userID: " + this.registeredID);
+            case SERVER: // я на стороне клиента фиксирую себя в листе пользователей
+                System.out.println("Регистрация пользователя " + this.mnemonicParameterFirst + " прошла успешно: userID: " + this.registeredUserID);
                 this.whoIsSender = WhoIsSender.NULL;
                 break;
             default:
                 System.err.println("RenamingFile.Reflection. Укажите отправителя");
                 break;
         }
-
     }
 
     /**
-     * Класс списка файлов на стороне сервера
+     * Метод удаления файлов на стороне сервера
      */
     public void deleteFile(ChannelHandlerContext ctx) {
 
@@ -378,6 +307,90 @@ public class CommandsList implements Serializable, CommandAnswer {
         }
 
 
+    }
+
+    /**
+     * Метод получения отправителя пакета
+     *
+     * @return - отправитель
+     */
+    @Override
+    public WhoIsSender getWhoIsSender() {
+        return this.whoIsSender;
+    }
+
+    /**
+     * Метод получения списка файлов в хранилище
+     *
+     * @return - List файлов
+     */
+    public List<File> getFiles() {
+        return this.files;
+    }
+
+    /**
+     * Переопределение toString для обекта.
+     *
+     * @return строковое представление объекта
+     */
+    @Override
+    public String toString() {
+        return "CommandsList{" +
+                "whoIsSender=" + whoIsSender +
+                ", fileData=" + Arrays.toString(fileData) +
+                ", registeredID='" + registeredUserID + '\'' +
+                ", files=" + files +
+                ", mnemonicCode='" + mnemonicCode + '\'' +
+                ", mnemonicParameterFirst='" + mnemonicParameterFirst + '\'' +
+                ", mnemonicParameterSecond='" + mnemonicParameterSecond + '\'' +
+                '}';
+    }
+
+    /**
+     * Метод подготовки объекта команды к отправке в сеть
+     *
+     * @param usersCommand - команда введенная в консоль
+     * @param whoIsSender  - кто отправитель (отправка начинается со стороны клиента)
+     */
+    @Override
+    public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+        this.whoIsSender = whoIsSender;
+        switch (usersCommand.split(" ").length) {
+            case 3: {
+                this.mnemonicParameterSecond = usersCommand.split(" ")[2];
+            }
+            case 2: {
+                this.mnemonicParameterFirst = usersCommand.split(" ")[1];
+            }
+            case 1: {
+                this.mnemonicCode = usersCommand.split(" ")[0];
+                break;
+            }
+            default:
+                System.out.println("wrong command");
+                break;
+        }
+
+        if (this.mnemonicCode.equals("~sf")) { // отправляемый в сеть объект-файл уже должен быть с данными поэтому заполняем здесь.
+            try {
+                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "\\" + this.mnemonicParameterFirst;
+                this.fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst).toAbsolutePath()); // NL записываем данные файла в объект
+            } catch (Exception e) {
+                System.err.println("не могу прочитать файл: " + this.mnemonicParameterFirst + " на локальном хранилище.");
+            }
+        }
+    }
+
+    /**
+     * метод обнуления объекта команнды после выоплнения
+     */
+    private void clearCommand() {
+        this.whoIsSender = CommandAnswer.WhoIsSender.NULL; // SERVER\CLIENT
+        this.files = null; // список файлов на клиенте \сервере
+        this.fileData = null; // данные передаваемого файла
+        this.mnemonicCode = null; // команда
+        this.mnemonicParameterFirst = null; // первый параметр ~s, ~name
+        this.mnemonicParameterSecond = null; // второй параметр ~filename
     }
 
 }

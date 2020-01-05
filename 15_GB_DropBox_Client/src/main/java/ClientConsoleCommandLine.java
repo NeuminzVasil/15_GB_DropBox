@@ -15,7 +15,7 @@ public class ClientConsoleCommandLine implements Runnable {
     /**
      * констуктор консольной программы с созданием клиентского подключения
      */
-    public ClientConsoleCommandLine(String hostName, int port) throws IOException {
+    public ClientConsoleCommandLine(String hostName, int port) {
 
         SettingsClient.HOST_NAME = hostName;
         SettingsClient.HOST_PORT = port;
@@ -51,6 +51,7 @@ public class ClientConsoleCommandLine implements Runnable {
 
                 if (!!(consoleCommand.insert(0, bufferedReader.readLine()).toString().toLowerCase().equals("~#stop"))) // NL обработка команды "стоп консоль"
                     break;
+
                 if (consoleCommand.toString().toLowerCase().startsWith("~?")) {// NL обработка команды "справка"
                     System.out.println(CommandsList.commandsInfo);
                 } else if (consoleCommand.toString().toLowerCase().startsWith("~si") ||

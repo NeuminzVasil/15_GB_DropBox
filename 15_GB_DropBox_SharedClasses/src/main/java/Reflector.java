@@ -6,6 +6,7 @@ import io.netty.util.ReferenceCountUtil;
 public class Reflector extends ChannelInboundHandlerAdapter {
     private String handlerName;
 
+
     public Reflector(String handlerName) {
         this.handlerName = handlerName;
     }
@@ -14,7 +15,8 @@ public class Reflector extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
 
         try {
-            ((CommandsList) msg).reflection(ctx, msg, ((CommandsList) msg).getWhoIsSender()); // NL обработка входящего объекта. Объект сам знает что от него требуется. см. Reflector()
+            ((CommandsList) msg).reflection(ctx, msg, ((CommandsList) msg).getWhoIsSender()); // NL обработка входящего объекта-команды.
+//                                                                                                 Объект сам знает что от него требуется. см. Reflector()
         } catch (Exception e) {
             e.getMessage();
         } finally {

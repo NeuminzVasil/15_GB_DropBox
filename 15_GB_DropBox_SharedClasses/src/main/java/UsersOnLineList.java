@@ -4,7 +4,7 @@ import java.util.List;
 
 public class UsersOnLineList {
 
-    static List<User> usersOnLineList = new LinkedList<>();
+    private static List<User> usersOnLineList = new LinkedList<>();// список зарегистрировавшихся пользователей онлайн
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -20,14 +20,18 @@ public class UsersOnLineList {
 
     }
 
+    public static void addRegisteredUserID(String login, String registeredUserID) {
+        usersOnLineList.add(new User(registeredUserID, login, 1)); // проработать получение dataBaseID из БД
+    }
+
     private static class User {
-        private String registeredID;
+        private String registeredUserID;
         private String login;
         private Integer dataBaseID;
         private Date lestOperationTime; // фиксации даты последней операции для отключения пользователя по простою.
 
         public User(String registeredID, String login, Integer dataBaseID) {
-            this.registeredID = registeredID;
+            this.registeredUserID = registeredID;
             this.login = login;
             this.dataBaseID = dataBaseID;
             this.lestOperationTime = new Date(System.currentTimeMillis());
@@ -43,7 +47,7 @@ public class UsersOnLineList {
 
         @Override
         public String toString() {
-            return "registeredID='" + registeredID + '\'' +
+            return "registeredID='" + registeredUserID + '\'' +
                     ", login='" + login + '\'' +
                     ", dataBaseID=" + dataBaseID +
                     ", lestOperationTime=" + lestOperationTime;
