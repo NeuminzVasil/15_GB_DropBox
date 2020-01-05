@@ -10,6 +10,16 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * copy to console for testing
+ * ~si ~s
+ * ~si ~c
+ * ~lu l1 p1
+ * ~df demo.bmp
+ * ~sf demo.bmp
+ * ~gf demo.bmp
+ * ~rf demo2.bmp demo1.bmp
+ */
 
 /**
  * Класс поступающей команды
@@ -370,11 +380,4 @@ public class CommandsList implements Serializable, CommandAnswer {
 
     }
 
-    // ~si ~s +
-    // ~si ~c +
-    // ~lu l1 p1 +
-    // ~df demo.bmp +
-    // ~sf demo.bmp +
-    // ~gf demo.bmp +
-    // ~rf demo2.bmp demo1.bmp +
 }
