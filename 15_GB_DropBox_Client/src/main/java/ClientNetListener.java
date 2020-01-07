@@ -43,7 +43,7 @@ public class ClientNetListener implements Runnable {
     @Override
     public void run() {
 
-        // NL клиент. подключемся к серверу
+        // NL клиент. подключение к серверу
         try {
 
             clientBootstrap.group(nioEventLoopGroup);
@@ -57,12 +57,8 @@ public class ClientNetListener implements Runnable {
                 protected void initChannel(SocketChannel ch) {
                     socketChannel = ch;
 //                    ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
-//                    socketChannel.pipeline().addLast(handlerName + ".AfterEncodingInformer", new MyOutboundInformer(handlerName.concat(".AfterEncodingInformer")));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
-//                    socketChannel.pipeline().addLast(handlerName + ".BeforeEncodingInformer", new MyOutboundInformer(handlerName.concat(".BeforeEncodingInformer")));
-//                    socketChannel.pipeline().addLast(handlerName + ".BeforeDecodingInformer", new MyInboundInformer(handlerName.concat(".BeforeDecodingInformer")));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsClient.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
-//                    socketChannel.pipeline().addLast(handlerName + ".AfterDecodingInformer", new MyInboundInformer(handlerName.concat(".AfterDecodingInformer")));
                     socketChannel.pipeline().addLast(new Reflector(handlerName));
                 }
             };
@@ -71,8 +67,7 @@ public class ClientNetListener implements Runnable {
             System.out.println("ClientNetListener.Works.");
             channelFuture = clientBootstrap.connect().sync();
 
-//             NL - клиент. здесь происходит магия.
-//                - блокирующая команда.
+// NL клиент. Здесь происходит блокирующая магия.
 
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {

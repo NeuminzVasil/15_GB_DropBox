@@ -12,7 +12,7 @@ public class DBConnect {
 
 
         try {
-            connectToDB(); // NL подключеие к БД
+            connectToDB(); // NL БД. подключеие к БД
             resultSet = getAllDataResultSet(); // чтение данных из БД
             while (resultSet.next()) { // вывод полученных данных
                 System.out.println(resultSet.getString(2) + " " + resultSet.getString(3));
@@ -49,7 +49,7 @@ public class DBConnect {
 
     public static Connection connectToDB() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
-        connection = DriverManager.getConnection("jdbc:sqlite:" + SettingsServer.DB_DESTINATION); // NL если подключаемся удаленно то в этом месте указываем IP и PORT
+        connection = DriverManager.getConnection("jdbc:sqlite:" + SettingsServer.DB_DESTINATION); // NL БД. если подключаемся удаленно то в этом месте указываем IP и PORT
         statement = connection.createStatement();
         return connection;
     }

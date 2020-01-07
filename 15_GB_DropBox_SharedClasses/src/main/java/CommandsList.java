@@ -10,392 +10,387 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * copy to console for testing
+ * ~si ~s
+ * ~si ~c
+ * ~lu l1 p1
+ * ~df demo.bmp
+ * ~sf demo.bmp
+ * ~gf demo.bmp
+ * ~rf demo2.bmp demo1.bmp
+ */
 
 /**
  * Класс поступающей команды
  */
-public class CommandsList {
+public class CommandsList implements Serializable, CommandAnswer {
 
     // to get this information type ~? at console
-    static final String commandsInfo = "Commands available: \n\t" +
-            "~si ~s  - to get server storage (files) info. \n\t" +
-            "~si ~r  - to get client storage (files) info. \n\t" +
-            "~gf NAME - to get file NAME from server to local. \n\t" +
-            "~sf NAME - to sent file NAME from local to server storage. \n\t" +
-            "~df NAME - to delete file NAME from server storage. \n\t" +
-            "~rf NAME - to renaming file NAME from server storage. \n" +
-            "____________________________________________________________";
+    static final String commandsInfo = "Commands available: \n\t~si ~s  - to get server storage (files) info. \n\t" +
+            "~si ~r  - to get client storage (files) info. \n\t~gf NAME - to get file NAME from server to local. \n\t" +
+            "~sf NAME - to sent file NAME from local to server storage. \n\t~df NAME - to delete file NAME from server storage. \n\t" +
+            "~rf NAME - to renaming file NAME from server storage. \n____________________________________________________________";
+
+    private CommandAnswer.WhoIsSender whoIsSender;
+    private String mnemonicCode;
+    private String mnemonicParameterFirst;
+    private String mnemonicParameterSecond;
+    private byte[] fileData;
+    private String registeredUserID;
+    private List<File> files;
+
+    public CommandsList() {
+        clearCommand();
+    }
+
+    public CommandsList(String usersCommand, CommandAnswer.WhoIsSender whoIsSender) {
+        this.sendingSettings(usersCommand, whoIsSender);
+    }
 
     /**
-     * Класс получения списка файлов
-     * сторона получения файлов указывыается окончанием команды
+     * Метод получения списка файлов
+     * сторона получения файлов указывыается первым параметорм команды
      * ~si ~s получение списка файлов на стороне сервера
-     * ~si ~r получение списка файлов на стороне клиента
+     * ~si ~с получение списка файлов на стороне клиента
      */
-    public static class GetStorageInfo implements Serializable, CommandAnswer {
+    @Override
+    public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
 
-        private WhoIsSender whoIsSender;
-        private File file;
-        private List<File> files;
+        if (this.mnemonicCode.toLowerCase().startsWith("~lu"))
+            logonUser(ctx); // NL до регистрации доступна только одна команда
 
-        public GetStorageInfo() {
-            this.whoIsSender = WhoIsSender.NULL;
-            this.file = null;
-            this.files = null;
+        if (this.registeredUserID == null) {
+            System.err.println("Авторизируйтесь командой ~lu NAME PASSWORD");
+            return;
         }
 
-        public GetStorageInfo(String usersCommand, WhoIsSender whoIsSender) {
-            this.sendingSettings(usersCommand, whoIsSender);
-        }
+        System.out.println("incoming command: " + this.mnemonicCode + " " + this.mnemonicParameterFirst + " " + this.mnemonicParameterSecond);
 
-        /**
-         * Метод получения списка файлов в хранилище
-         *
-         * @return - List файлов
-         */
-        public List<File> getFiles() {
-            updateFiles();
-            return this.files;
-        }
+        if (this.mnemonicCode.toLowerCase().startsWith("~si"))
+            getServerInfo(ctx); // NL после регистрации доступны все команды
+        else if (this.mnemonicCode.toLowerCase().startsWith("~df")) deleteFile(ctx);
+        else if (this.mnemonicCode.toLowerCase().startsWith("~sf")) sendFile(ctx);
+        else if (this.mnemonicCode.toLowerCase().startsWith("~gf")) getFile(ctx);
+        else if (this.mnemonicCode.toLowerCase().startsWith("~rf")) renameFile(ctx);
+        else System.err.println("Reflection. unknown incoming command. \n" + commandsInfo);
 
-        /**
-         * Метод получения отправителя пакета
-         *
-         * @return - отправитель
-         */
-        @Override
-        public WhoIsSender getWhoIsSender() {
-            return this.whoIsSender;
-        }
-
-        /**
-         * метод обновления списка файлов в листе файлов "private List<File> files"
-         */
-        private void updateFiles() {
-            this.files = Arrays.asList(file.listFiles());
-        }
-
-        /**
-         * Переопределение toString для обекта.
-         *
-         * @return строковое представление объекта
-         */
-        @Override
-        public String toString() {
-            StringBuffer res = new StringBuffer();
-            files.forEach(file -> {
-                res.append(file.getName() + "\n");
-            });
-            return res.toString();
-        }
-
-
-        @Override
-        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-            try {
-                this.whoIsSender = whoIsSender;
-
-                if (usersCommand.split(" ")[1].equals("~s"))
-                    file = new File(SettingsServer.SERVER_PATH.toString());
-                else
-                    file = new File(SettingsClient.CLIENT_PATH.toString()); //NL когда метод выполняется на стороне клиента сервер не знает о существовании этого пути.
-
-                this.files = Arrays.asList(file.listFiles());
-
-            } catch (Exception e) {
-                e.getMessage();
-            }
-        }
-
-        @Override
-        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
-            switch (this.whoIsSender) {
-                case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
-                    this.whoIsSender = WhoIsSender.SERVER;
-                    ctx.writeAndFlush(this);
-                    System.out.println("GetStorageInfo.request.done");
-                    break;
-                case SERVER: // если отправителем был Сервер то выполняем на клиенте то что нужно клиенту
-                    System.out.println(this);
-                    this.whoIsSender = WhoIsSender.NULL;
-                    break;
-                default:
-                    System.err.println("GetStorageInfo.Reflection. Не указан отрпавитель SERVER || CLIENT");
-            }
-        }
+        if (whoIsSender.equals(WhoIsSender.NULL)) this.clearCommand();
     }
 
     /**
-     * Класс передачи файла от сервера клиенту
+     * Метод получеия списка хранилища файлов
      */
-    public static class GetFileFromServer implements Serializable, CommandAnswer {
+    public void getServerInfo(ChannelHandlerContext ctx) {
+        switch (this.whoIsSender) {
+            case CLIENT: //я на стороне сервера // если отправителем был клиент то выполнить логику обработки данных на стороне сервера
 
-        private String fileName;
-        private byte[] fileData;
-        private WhoIsSender whoIsSender;
-
-        public GetFileFromServer() {
-            this.fileName = null;
-            this.fileData = null;
-            this.whoIsSender = WhoIsSender.NULL;
-        }
-
-
-        public GetFileFromServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
-            this.sendingSettings(usersCommand, whoIsSender);
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public byte[] getFileData() {
-            return fileData;
-        }
-
-        @Override
-        public WhoIsSender getWhoIsSender() {
-            return this.whoIsSender;
-        }
-
-        @Override
-        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
-        }
-
-        @Override
-        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) throws IOException {
-
-            switch (this.whoIsSender) {
-                case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
-                    this.whoIsSender = WhoIsSender.SERVER;
-                    fileData = Files.readAllBytes(Paths.get(this.fileName)); // NL записываем данные файла в объект\
-                    ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
-                    break;
-
-                case SERVER: // если отправителем был Сервер то выполняем на клиенте то что нужно клиенту
-
+                if (this.mnemonicParameterFirst.equals("~s")) { // я хочу получить файлы на сервере
                     try {
-                        this.fileName = SettingsClient.CLIENT_PATH + "\\" + Paths.get(this.fileName).getFileName().toString();
-                        Files.write(Paths.get(this.fileName), this.fileData, StandardOpenOption.CREATE_NEW); // NL создаем на клиенте файл из объекта
-                    } catch (IOException e) {
-                        System.err.println("не могу записать файл: " + this.getFileName());
-                        e.printStackTrace();
+                        this.files = Arrays.asList(new File(SettingsServer.SERVER_PATH.toString()).listFiles()); // формируем список файлов сервера в LIST
+                    } catch (Exception e) {
+                        System.err.println("не могу получить список файлов в заданной папке.");
+                        e.getMessage();
                     }
+                } else if (!this.mnemonicParameterFirst.equals("~c"))
+                    System.err.println("для команды ~si второй параметр должен быть либо ~s либо ~c");
 
-                    System.out.println("Файл " + this.getFileName() + " сохранен на клиенте"); //log
+                this.whoIsSender = WhoIsSender.SERVER;
+                ctx.writeAndFlush(this);
+                break;
 
-                    this.whoIsSender = WhoIsSender.CLIENT;
-                    break;
+            case SERVER: //я на стороне клиента // если отправителем был Сервер то выполнить логику обработки данных на стороне клиента
 
-                default:
-                    System.err.println("MessageCommand. Пожалуйста укажите отправителя"); //log
-            }
+                if (this.mnemonicParameterFirst.equals("~c")) { // я хочу получить файлы на клиенте
+                    try {
+                        this.files = Arrays.asList(new File(SettingsClient.CLIENT_PATH.toString()).listFiles());
+                        this.getFiles().forEach(System.out::println); // формируем список файлов клиента в LIST
+                    } catch (Exception e) {
+                        System.err.println("не могу получить список файлов в заданной папке.");
+                        e.getMessage();
+                    }
+                } else if (this.mnemonicParameterFirst.equals("~s")) {// я хочу получить файлы на сервере
+                    this.getFiles().forEach(System.out::println);
+                } else System.err.println("для команды ~si второй параметр должен быть либо ~s либо ~c");
+
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+
+            default:
+                System.err.println("GetStorageInfo.Reflection. Не указан отрпавитель SERVER || CLIENT");
+                break;
         }
     }
 
     /**
-     * Класс передачи файла от клиента серверу
+     * Метод регистрации клиента на сервере на стороне сервера
      */
-    public static class SendFileToServer implements Serializable, CommandAnswer {
+    public void logonUser(ChannelHandlerContext ctx) {
 
-        private String fileName;
-        private byte[] fileData;
-        private WhoIsSender whoIsSender;
+        switch (this.whoIsSender) {
 
-        public SendFileToServer() {
-            this.fileData = null;
-            this.fileData = null;
-            this.whoIsSender = WhoIsSender.NULL;
+            case CLIENT: // я на стороне сервера, хочу получить идетификационный номер и занести себя в лист зарегистрированных пользователей.
+                this.whoIsSender = WhoIsSender.SERVER;
+                System.out.println("Регистрация пользователя: " + this.mnemonicParameterFirst);
+                // NL именно здесь нужно запрограммить : разрешается или запрещается следующая строчка ,
+                //  1) подключение к базе данных
+                //  2) выяснение есть ли такой пользователь в БД
+                //  3) если нет то пропустить две следующие строчки
+
+                this.registeredUserID = ctx.pipeline().channel().id().asShortText();
+                UsersOnLineList.addRegisteredUserID(this.registeredUserID, this.mnemonicParameterFirst);
+                ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
+                break;
+
+            case SERVER: // я на стороне клиента фиксирую себя в листе пользователей
+                System.out.println("Регистрация пользователя " + this.mnemonicParameterFirst + " прошла успешно: userID: " + this.registeredUserID);
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+            default:
+                System.err.println("RenamingFile.Reflection. Укажите отправителя");
+                break;
+        }
+    }
+
+    /**
+     * Метод удаления файлов на стороне сервера
+     */
+    public void deleteFile(ChannelHandlerContext ctx) {
+
+        switch (this.whoIsSender) {
+            case CLIENT: //я на стороне сервера
+                try {
+                    Files.delete(Paths.get(SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterFirst));
+                    System.out.println("файл: " + this.mnemonicParameterFirst + " удален из хранилища на сервере.");
+                    this.mnemonicParameterSecond = "true";
+                } catch (IOException e) {
+                    System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно удалить из хранилища на сервере.");
+                    this.mnemonicParameterSecond = "false";
+                    e.getMessage();
+                }
+
+                this.whoIsSender = WhoIsSender.SERVER;
+                ctx.writeAndFlush(this);
+                break;
+
+            case SERVER: //я на стороне клиента
+                if (this.mnemonicParameterSecond.equals("false")) {
+                    System.err.println("Невозможно удалить " + this.mnemonicParameterFirst + " в хранилище на сервере.");
+                } else {
+                    System.out.println("Файл " + this.mnemonicParameterFirst + " удален из хранилища на сервере.");
+                }
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+
+            default:
+                System.err.println("GetStorageInfo.Reflection. Не указан отрпавитель SERVER || CLIENT");
+                break;
+        }
+    }
+
+    /**
+     * Метод отправки файла на сервер
+     */
+    public void sendFile(ChannelHandlerContext ctx) {
+
+        switch (this.whoIsSender) {
+            case CLIENT: //я на стороне сервера
+                try {
+                    this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "\\" + Paths.get(this.mnemonicParameterFirst).getFileName();
+                    Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL записываем данные объекта в файл
+                    System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в хранилище на сервере.");
+                    this.mnemonicParameterSecond = "done";
+                } catch (IOException e) {
+                    System.err.println("Невозможно записать " + this.mnemonicParameterFirst + " в хранилище на сервере.");
+                    this.mnemonicParameterSecond = "false";
+                    e.getMessage();
+                }
+
+                this.whoIsSender = WhoIsSender.SERVER;
+                ctx.writeAndFlush(this);
+                break;
+
+            case SERVER: //я на стороне клиента
+                if (this.mnemonicParameterSecond.equals("false")) {
+                    System.err.println("Невозможно записать " + this.mnemonicParameterFirst + " в хранилище на сервере.");
+                } else {
+                    System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в хранилище на сервере.");
+                }
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+
+            default:
+                System.err.println("GetStorageInfo.Reflection. Не указан отрпавитель SERVER || CLIENT");
+                break;
         }
 
-        public SendFileToServer(String usersCommand, WhoIsSender whoIsSender) throws IOException {
-            this.sendingSettings(usersCommand, whoIsSender);
+
+    }
+
+    /**
+     * Метод получения файла с сервера
+     */
+    public void getFile(ChannelHandlerContext ctx) {
+
+        switch (this.whoIsSender) {
+            case CLIENT: // я на стороне сервера
+                this.whoIsSender = WhoIsSender.SERVER;
+                this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterFirst;
+
+                try {
+                    fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst)); // NL записываем данные файла в объект
+                    this.mnemonicParameterSecond = "done";
+                } catch (Exception e) {
+                    this.mnemonicParameterSecond = "false";
+                    e.getMessage();
+                }
+
+                ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
+                break;
+
+            case SERVER: // я на стороне клиента
+                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "\\" + Paths.get(this.mnemonicParameterFirst).getFileName().toString();
+                try {
+                    Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL создаем на клиенте файл из объекта
+                    System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в локальном хранилище");
+                } catch (IOException e) {
+                    System.err.println("не могу записать файл: " + this.mnemonicParameterFirst + " в локальном хранилище");
+                    e.getMessage();
+                }
+
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+
+            default:
+                System.err.println("MessageCommand. Укажите отправителя");
+                break;
+        }
+    }
+
+    /**
+     * Метод смены имени файла на стороне сервера
+     */
+    public void renameFile(ChannelHandlerContext ctx) {
+
+
+        switch (this.whoIsSender) {
+            case CLIENT: // я на стороне сервера
+                this.whoIsSender = WhoIsSender.SERVER;
+                this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterFirst;
+                this.mnemonicParameterSecond = SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterSecond;
+
+                try {
+                    Files.move(Paths.get(this.mnemonicParameterFirst), Paths.get(this.mnemonicParameterSecond), StandardCopyOption.REPLACE_EXISTING);
+                    System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере.");
+                } catch (IOException e) {
+                    System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно переименовать на сервере в " + this.mnemonicParameterSecond);
+                    this.mnemonicParameterSecond = "false";
+                    e.getMessage();
+                }
+                ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
+                break;
+
+            case SERVER: // я на стороне клиента
+
+                if (this.mnemonicParameterSecond.equals("false")) {
+                    System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно переименовать на сервере");
+                } else
+                    System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере.");
+
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+
+            default:
+                System.err.println("MessageCommand. Укажите отправителя");
+                break;
+
         }
 
-        public String getFileName() {
-            return fileName;
+
+    }
+
+    /**
+     * Метод получения отправителя пакета
+     *
+     * @return - отправитель
+     */
+    @Override
+    public WhoIsSender getWhoIsSender() {
+        return this.whoIsSender;
+    }
+
+    /**
+     * Метод получения списка файлов в хранилище
+     *
+     * @return - List файлов
+     */
+    public List<File> getFiles() {
+        return this.files;
+    }
+
+    /**
+     * Переопределение toString для обекта.
+     *
+     * @return строковое представление объекта
+     */
+    @Override
+    public String toString() {
+        return "CommandsList{" +
+                "whoIsSender=" + whoIsSender +
+                ", fileData=" + Arrays.toString(fileData) +
+                ", registeredID='" + registeredUserID + '\'' +
+                ", files=" + files +
+                ", mnemonicCode='" + mnemonicCode + '\'' +
+                ", mnemonicParameterFirst='" + mnemonicParameterFirst + '\'' +
+                ", mnemonicParameterSecond='" + mnemonicParameterSecond + '\'' +
+                '}';
+    }
+
+    /**
+     * Метод подготовки объекта команды к отправке в сеть
+     *
+     * @param usersCommand - команда введенная в консоль
+     * @param whoIsSender  - кто отправитель (отправка начинается со стороны клиента)
+     */
+    @Override
+    public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
+        this.whoIsSender = whoIsSender;
+        switch (usersCommand.split(" ").length) {
+            case 3: {
+                this.mnemonicParameterSecond = usersCommand.split(" ")[2];
+            }
+            case 2: {
+                this.mnemonicParameterFirst = usersCommand.split(" ")[1];
+            }
+            case 1: {
+                this.mnemonicCode = usersCommand.split(" ")[0];
+                break;
+            }
+            default:
+                System.out.println("wrong command");
+                break;
         }
 
-        @Override
-        public WhoIsSender getWhoIsSender() {
-            return this.whoIsSender;
-        }
-
-        @Override
-        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) throws IOException {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SettingsClient.CLIENT_PATH + "\\" + fileName;
-            fileData = Files.readAllBytes(Paths.get(this.fileName).toAbsolutePath()); // NL записываем данные файла в объект
-        }
-
-        @Override
-        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+        if (this.mnemonicCode.equals("~sf")) { // отправляемый в сеть объект-файл уже должен быть с данными поэтому заполняем здесь.
             try {
-                this.fileName = SettingsServer.SERVER_PATH + "\\" + Paths.get(this.fileName).getFileName();
-                Files.write(Paths.get(this.fileName), this.fileData, StandardOpenOption.CREATE_NEW);
-            } catch (IOException e) {
-                System.err.println("не могу сохранить файл: " + this.getFileName() + " на сервере.");
-                e.printStackTrace();
+                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "\\" + this.mnemonicParameterFirst;
+                this.fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst).toAbsolutePath()); // NL записываем данные файла в объект
+            } catch (Exception e) {
+                System.err.println("не могу прочитать файл: " + this.mnemonicParameterFirst + " на локальном хранилище.");
             }
-
-            System.out.println("файл: " + this.getFileName() + " сохранен на сервере.");
-
         }
     }
 
     /**
-     * Класс списка файлов на стороне сервера
+     * метод обнуления объекта команнды после выоплнения
      */
-    public static class DeleteFile implements Serializable, CommandAnswer {
-
-        private String fileName;
-        private WhoIsSender whoIsSender;
-
-        public DeleteFile() {
-            this.fileName = null;
-            whoIsSender = WhoIsSender.NULL;
-        }
-
-        /**
-         * конструктор объекта с путем к хранилищу по умолчканию
-         */
-        public DeleteFile(String usersCommand, WhoIsSender whoIsSender) {
-            sendingSettings(usersCommand, whoIsSender);
-        }
-
-        @Override
-        public WhoIsSender getWhoIsSender() {
-            return this.whoIsSender;
-        }
-
-        @Override
-        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.fileName = SettingsServer.SERVER_PATH + "\\" + fileName;
-        }
-
-        @Override
-        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
-
-            try {
-                Files.delete(Paths.get(this.fileName));
-            } catch (IOException e) {
-                System.err.println("файл: " + this.fileName + " не возможно удалить хранилища на сервере.");
-                e.printStackTrace();
-            }
-            System.out.println("файл: " + this.fileName + " удален из хранилища на сервере."); // log
-        }
+    private void clearCommand() {
+        this.whoIsSender = CommandAnswer.WhoIsSender.NULL; // SERVER\CLIENT
+        this.files = null; // список файлов на клиенте \сервере
+        this.fileData = null; // данные передаваемого файла
+        this.mnemonicCode = null; // команда
+        this.mnemonicParameterFirst = null; // первый параметр ~s, ~name
+        this.mnemonicParameterSecond = null; // второй параметр ~filename
     }
 
-    /**
-     * Класс списка файлов на стороне сервера
-     */
-    public static class RenamingFile implements Serializable, CommandAnswer {
-
-        private String fileName;
-        private String newFileName;
-        private WhoIsSender whoIsSender;
-
-        public RenamingFile() {
-            this.fileName = null;
-            this.newFileName = null;
-            this.whoIsSender = WhoIsSender.NULL;
-        }
-
-        /**
-         * конструктор объекта с путем к хранилищу по умолчканию
-         */
-        public RenamingFile(String usersCommand, WhoIsSender whoIsSender) {
-            this.sendingSettings(usersCommand, whoIsSender);
-        }
-
-        @Override
-        public WhoIsSender getWhoIsSender() {
-            return this.whoIsSender;
-        }
-
-        @Override
-        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.fileName = usersCommand.split(" ")[1];
-            this.newFileName = usersCommand.split(" ")[2];
-            this.fileName = SettingsServer.SERVER_PATH + "\\" + this.fileName;
-            this.newFileName = SettingsServer.SERVER_PATH + "\\" + this.newFileName;
-        }
-
-        @Override
-        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
-
-            try {
-                Files.move(Paths.get(this.fileName), Paths.get(this.newFileName), StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                System.err.println("файл: " + this.fileName + " не возможно переименовать на сервере.");
-                e.printStackTrace();
-            }
-            System.out.println("файл: " + this.fileName + " переименован в " + this.newFileName + " в хранилище на сервере."); // log
-            //~rf demo.txt demo.bmp
-        }
-    }
-
-    /**
-     * Класс регистрации клиента на сервере на стороне сервера
-     */
-    public static class UserRegistering implements Serializable, CommandAnswer {
-
-
-        private String name;
-        private String password;
-        private String registeredID;
-        private WhoIsSender whoIsSender;
-
-        public UserRegistering() {
-            this.name = null;
-            this.password = null;
-            this.registeredID = null;
-            this.whoIsSender = WhoIsSender.NULL;
-        }
-
-        public UserRegistering(String usersCommand, WhoIsSender whoIsSender) {
-            this.sendingSettings(usersCommand, whoIsSender);
-        }
-
-        @Override
-        public WhoIsSender getWhoIsSender() {
-            return this.whoIsSender;
-        }
-
-        @Override
-        public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
-            this.whoIsSender = whoIsSender;
-            this.name = usersCommand.split(" ")[1];
-            this.password = usersCommand.split(" ")[2];
-        }
-
-        @Override
-        public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
-
-            switch (this.whoIsSender) {
-                case CLIENT: // если отправителем был клиент то выполняем ответ от сервера
-                    this.whoIsSender = WhoIsSender.SERVER;
-                    System.out.println("Reflection.SERVER.Регистрация пользователя: " + this.name);
-                    this.registeredID = ctx.pipeline().channel().id().asShortText();
-                    ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
-                    break;
-
-                case SERVER: // если отправителем был Сервер то выполняем на клиенте то что нужно клиенту
-                    this.whoIsSender = WhoIsSender.CLIENT;
-
-                    System.out.println("Reflection.CLIENT.Регистрация пользователя " + this.name + " прошла успешно: userID: " + this.registeredID);
-                    break;
-                default:
-                    System.err.println("RenamingFile.Reflection. Пожалуйста укажите отправителя"); //log
-            }
-
-        }
-    }
 }
