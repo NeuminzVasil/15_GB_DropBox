@@ -9,8 +9,8 @@ public class ClientConsoleCommandLine implements Runnable {
     private ClientNetListener clientNetListener; // ссылка на клиентское подключение
     private InputStreamReader inputStream = new InputStreamReader(System.in); // объект чтения данных из потока консоли
     private BufferedReader bufferedReader = new BufferedReader(inputStream); // объект чтения данных из консоли
-    private StringBuilder consoleCommand = new StringBuilder(); // введенная в консоль пользователем
-    private CommandAnswer networkCommand = new CommandsList(); //объект "команды пользователя"
+    private StringBuilder commandFromUsersConsole = new StringBuilder(); // введенная в консоль пользователем
+    private CommandAnswer commandForSend = new CommandsList(); //объект "команды пользователя"
 
     /**
      * констуктор консольной программы с созданием клиентского подключения
@@ -26,7 +26,7 @@ public class ClientConsoleCommandLine implements Runnable {
         clientNetListenerThread.start();
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         if (args.length > 0) {
             SettingsClient.HOST_NAME = args[0];
@@ -45,29 +45,35 @@ public class ClientConsoleCommandLine implements Runnable {
     @Override
     public void run() {
 
-        System.out.println("ClientConsoleCommandLine.started"); //log
+        System.out.println("ClientConsoleCommandLine.started");
         try {
-            while (true) { // NL цикл чтения команд с консоли пользователя
+            while (true) { // NL клиент. цикл чтения команд с консоли пользователя
 
-                if (!!(consoleCommand.insert(0, bufferedReader.readLine()).toString().toLowerCase().equals("~#stop"))) // NL обработка команды "стоп консоль"
+                if (!!(commandFromUsersConsole.insert(0, bufferedReader.readLine()).toString().toLowerCase().equals("~#stop"))) // NL клиент. обработка команды "стоп консоль"
                     break;
 
-                if (consoleCommand.toString().toLowerCase().startsWith("~?")) {// NL обработка команды "справка"
-                    System.out.println(CommandsList.commandsInfo);
-                } else if (consoleCommand.toString().toLowerCase().startsWith("~si") ||
-                        consoleCommand.toString().toLowerCase().startsWith("~lu") ||
-                        consoleCommand.toString().toLowerCase().startsWith("~gf") ||
-                        consoleCommand.toString().toLowerCase().startsWith("~sf") ||
-                        consoleCommand.toString().toLowerCase().startsWith("~df") ||
-                        consoleCommand.toString().toLowerCase().startsWith("~rf")) {
+                if (commandFromUsersConsole.toString().toLowerCase().startsWith("~lu") || // NL клиент. обработка дргих команд
+                        commandFromUsersConsole.toString().toLowerCase().startsWith("~?") ||
+                        commandFromUsersConsole.toString().toLowerCase().startsWith("~si") ||
+                        commandFromUsersConsole.toString().toLowerCase().startsWith("~gf") ||
+                        commandFromUsersConsole.toString().toLowerCase().startsWith("~sf") ||
+                        commandFromUsersConsole.toString().toLowerCase().startsWith("~df") ||
+                        commandFromUsersConsole.toString().toLowerCase().startsWith("~rf")) {
 
-                    networkCommand.sendingSettings(consoleCommand.toString(), CommandAnswer.WhoIsSender.CLIENT);  // NL подготовка полезной команды
-                    clientNetListener.getSocketChannel().writeAndFlush(networkCommand); // NL обработка полезной команды
+// NL клиент. Любой интерфейс пользователя, для взаимодействя с сервером, обязан выполнить два пункта:
+//  - 1) подготовить команду commandForSend.sendingSettings() принимает 3 параметра:
+//      -- мнемокод команды с параметрами,
+//      -- суффикс отравителя,
+//      -- Регистационный номер клиента, полученный при аутентификации.
+//  - 2) отправить команду в сеть writeAndFlush(String ПОДГОТОВЛЕННАЯ_КОМАНДА)
 
-                } else { // NL обработка неизвестной команды
+                    commandForSend.sendingSettings(commandFromUsersConsole.toString(), CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
+                    clientNetListener.getSocketChannel().writeAndFlush(commandForSend); // NL клиент. отправка команды в сеть.
+
+                } else { // NL клиент. обработка неизвестной команды
                     System.err.println("Console: unknown command!");
                 }
-                consoleCommand.setLength(0);
+                commandFromUsersConsole.setLength(0);
             }
 
             clientNetListener.getSocketChannel().closeFuture();

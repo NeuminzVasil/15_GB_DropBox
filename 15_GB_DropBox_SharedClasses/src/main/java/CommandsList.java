@@ -2,11 +2,11 @@ import io.netty.channel.ChannelHandlerContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,21 +24,23 @@ import java.util.List;
 /**
  * Класс поступающей команды
  */
-public class CommandsList implements Serializable, CommandAnswer {
+public class CommandsList implements CommandAnswer {
 
     // to get this information type ~? at console
-    static final String commandsInfo = "Commands available: \n\t~si ~s  - to get server storage (files) info. \n\t" +
-            "~si ~r  - to get client storage (files) info. \n\t~gf NAME - to get file NAME from server to local. \n\t" +
+    final String commandsInfoRegistered = "Commands available: \n\t~si ~s  - to get server storage (files) info. \n\t" +
+            "~si ~c  - to get client storage (files) info. \n\t~gf NAME - to get file NAME from server to local. \n\t" +
             "~sf NAME - to sent file NAME from local to server storage. \n\t~df NAME - to delete file NAME from server storage. \n\t" +
             "~rf NAME - to renaming file NAME from server storage. \n____________________________________________________________";
+    final String commandsInfoShort = "Commands available: \n\t~lu LOGIN PASSWORD - to login IN. \n\t" +
+            "~?  - to get help.\n____________________________________________________________";
 
     private CommandAnswer.WhoIsSender whoIsSender;
+    private String registeredUserID = null;
     private String mnemonicCode;
     private String mnemonicParameterFirst;
     private String mnemonicParameterSecond;
-    private byte[] fileData;
-    private String registeredUserID;
     private List<File> files;
+    private byte[] fileData;
 
     public CommandsList() {
         clearCommand();
@@ -49,33 +51,56 @@ public class CommandsList implements Serializable, CommandAnswer {
     }
 
     /**
-     * Метод получения списка файлов
-     * сторона получения файлов указывыается первым параметорм команды
-     * ~si ~s получение списка файлов на стороне сервера
-     * ~si ~с получение списка файлов на стороне клиента
+     * Метод обработки входящего объекта-команды
      */
     @Override
-    public void reflection(ChannelHandlerContext ctx, Object msg, WhoIsSender whoIsSender) {
+    public void reflection(ChannelHandlerContext ctx) {
 
-        if (this.mnemonicCode.toLowerCase().startsWith("~lu"))
-            logonUser(ctx); // NL до регистрации доступна только одна команда
+        if (this.mnemonicCode.toLowerCase().startsWith("~?"))
+            getCommandsList(ctx); // NL  0) если запрос списка команд = выполнить запрос
+        else if (this.mnemonicCode.toLowerCase().startsWith("~lu")) //NL  1) если нет регистрации то запустить регистрацию пользователя
+            logonUser(ctx);
+        else if (this.registeredUserID != null) { // NL 2) если есть регистация = выоплнить команду.
+            if (this.mnemonicCode.toLowerCase().startsWith("~si"))
+                getServerInfo(ctx);
+            else if (this.mnemonicCode.toLowerCase().startsWith("~df")) deleteFile(ctx);
+            else if (this.mnemonicCode.toLowerCase().startsWith("~sf")) sendFile(ctx);
+            else if (this.mnemonicCode.toLowerCase().startsWith("~gf")) getFile(ctx);
+            else if (this.mnemonicCode.toLowerCase().startsWith("~rf")) renameFile(ctx);
+        } else
+            System.err.println("Reflection. unknown incoming command or no user`s authority. incoming mnemonicCode: (" + mnemonicCode + ")");
+    }
 
-        if (this.registeredUserID == null) {
-            System.err.println("Авторизируйтесь командой ~lu NAME PASSWORD");
-            return;
+    /**
+     * Метод регистрации клиента на сервере на стороне сервера
+     */
+    public void logonUser(ChannelHandlerContext ctx) {
+
+        switch (this.whoIsSender) {
+
+            case CLIENT: // я на стороне сервера, хочу получить идетификационный номер и занести себя в лист зарегистрированных пользователей.
+                this.whoIsSender = WhoIsSender.SERVER;
+                System.out.println("Регистрация пользователя: " + this.mnemonicParameterFirst);
+                try {
+                    DBConnect dbConnect = new DBConnect();  // 1) подключиться к БД
+                    this.registeredUserID = dbConnect.getRegisteredUserID(this.mnemonicParameterFirst, this.mnemonicParameterSecond); // 2) присвоить полю команды this.registeredUserID полезное значение либо null  +
+                    dbConnect.disconnect();
+                } catch (SQLException e) {
+                    System.err.println("не могу подключиться к БД для получения ID пользователя.");
+                }
+                UsersOnLineList.addRegisteredUserID(this.mnemonicParameterFirst, this.registeredUserID); // 3) зарегистрировать в списке пользователей
+                ctx.writeAndFlush(this);
+                break;
+
+            case SERVER: // я на стороне клиента фиксирую себя в листе пользователей
+                UsersOnLineList.MyID = this.registeredUserID;
+                System.out.println("Регистрация пользователя " + this.mnemonicParameterFirst + " прошла успешно: userID: " + UsersOnLineList.MyID);
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+            default:
+                System.err.println("RenamingFile.Reflection. Укажите отправителя");
+                break;
         }
-
-        System.out.println("incoming command: " + this.mnemonicCode + " " + this.mnemonicParameterFirst + " " + this.mnemonicParameterSecond);
-
-        if (this.mnemonicCode.toLowerCase().startsWith("~si"))
-            getServerInfo(ctx); // NL после регистрации доступны все команды
-        else if (this.mnemonicCode.toLowerCase().startsWith("~df")) deleteFile(ctx);
-        else if (this.mnemonicCode.toLowerCase().startsWith("~sf")) sendFile(ctx);
-        else if (this.mnemonicCode.toLowerCase().startsWith("~gf")) getFile(ctx);
-        else if (this.mnemonicCode.toLowerCase().startsWith("~rf")) renameFile(ctx);
-        else System.err.println("Reflection. unknown incoming command. \n" + commandsInfo);
-
-        if (whoIsSender.equals(WhoIsSender.NULL)) this.clearCommand();
     }
 
     /**
@@ -118,36 +143,6 @@ public class CommandsList implements Serializable, CommandAnswer {
 
             default:
                 System.err.println("GetStorageInfo.Reflection. Не указан отрпавитель SERVER || CLIENT");
-                break;
-        }
-    }
-
-    /**
-     * Метод регистрации клиента на сервере на стороне сервера
-     */
-    public void logonUser(ChannelHandlerContext ctx) {
-
-        switch (this.whoIsSender) {
-
-            case CLIENT: // я на стороне сервера, хочу получить идетификационный номер и занести себя в лист зарегистрированных пользователей.
-                this.whoIsSender = WhoIsSender.SERVER;
-                System.out.println("Регистрация пользователя: " + this.mnemonicParameterFirst);
-                // NL именно здесь нужно запрограммить : разрешается или запрещается следующая строчка ,
-                //  1) подключение к базе данных
-                //  2) выяснение есть ли такой пользователь в БД
-                //  3) если нет то пропустить две следующие строчки
-
-                this.registeredUserID = ctx.pipeline().channel().id().asShortText();
-                UsersOnLineList.addRegisteredUserID(this.registeredUserID, this.mnemonicParameterFirst);
-                ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
-                break;
-
-            case SERVER: // я на стороне клиента фиксирую себя в листе пользователей
-                System.out.println("Регистрация пользователя " + this.mnemonicParameterFirst + " прошла успешно: userID: " + this.registeredUserID);
-                this.whoIsSender = WhoIsSender.NULL;
-                break;
-            default:
-                System.err.println("RenamingFile.Reflection. Укажите отправителя");
                 break;
         }
     }
@@ -287,7 +282,7 @@ public class CommandsList implements Serializable, CommandAnswer {
                     this.mnemonicParameterSecond = "false";
                     e.getMessage();
                 }
-                ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
+                ctx.writeAndFlush(this); //
                 break;
 
             case SERVER: // я на стороне клиента
@@ -307,6 +302,31 @@ public class CommandsList implements Serializable, CommandAnswer {
         }
 
 
+    }
+
+    /**
+     * Метод получения доступных команд
+     */
+    public void getCommandsList(ChannelHandlerContext ctx) {
+
+        switch (this.whoIsSender) {
+            case CLIENT: // я на стороне сервера
+                this.whoIsSender = WhoIsSender.SERVER;
+
+                if (this.registeredUserID == null) this.mnemonicParameterFirst = commandsInfoShort;
+                else this.mnemonicParameterFirst = commandsInfoRegistered;
+                ctx.writeAndFlush(this);
+                break;
+
+            case SERVER: // я на стороне клиента
+                System.out.println(this.mnemonicParameterFirst);
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+
+            default:
+                System.err.println("MessageCommand. Укажите отправителя");
+                break;
+        }
     }
 
     /**
@@ -335,15 +355,14 @@ public class CommandsList implements Serializable, CommandAnswer {
      */
     @Override
     public String toString() {
-        return "CommandsList{" +
-                "whoIsSender=" + whoIsSender +
-                ", fileData=" + Arrays.toString(fileData) +
-                ", registeredID='" + registeredUserID + '\'' +
-                ", files=" + files +
-                ", mnemonicCode='" + mnemonicCode + '\'' +
-                ", mnemonicParameterFirst='" + mnemonicParameterFirst + '\'' +
-                ", mnemonicParameterSecond='" + mnemonicParameterSecond + '\'' +
-                '}';
+        return "Command: " + "\n\t" +
+                "whoIsSender=" + this.whoIsSender + "\n\t" +
+                "registeredID=" + this.registeredUserID + "\n\t" +
+                "mnemonicCode=" + this.mnemonicCode + "\n\t" +
+                "mnemonicParameterFirst=" + mnemonicParameterFirst + "\n\t" +
+                "mnemonicParameterSecond=" + mnemonicParameterSecond + "\n\t" +
+                "files=" + files + "\n\t" +
+                "fileData=" + Arrays.toString(fileData);
     }
 
     /**
@@ -355,6 +374,8 @@ public class CommandsList implements Serializable, CommandAnswer {
     @Override
     public void sendingSettings(String usersCommand, WhoIsSender whoIsSender) {
         this.whoIsSender = whoIsSender;
+        this.registeredUserID = UsersOnLineList.MyID;
+
         switch (usersCommand.split(" ").length) {
             case 3: {
                 this.mnemonicParameterSecond = usersCommand.split(" ")[2];
@@ -386,6 +407,7 @@ public class CommandsList implements Serializable, CommandAnswer {
      */
     private void clearCommand() {
         this.whoIsSender = CommandAnswer.WhoIsSender.NULL; // SERVER\CLIENT
+        this.registeredUserID = null;
         this.files = null; // список файлов на клиенте \сервере
         this.fileData = null; // данные передаваемого файла
         this.mnemonicCode = null; // команда
@@ -393,4 +415,8 @@ public class CommandsList implements Serializable, CommandAnswer {
         this.mnemonicParameterSecond = null; // второй параметр ~filename
     }
 
+    @Override
+    public String getRegisteredUserID() {
+        return registeredUserID;
+    }
 }

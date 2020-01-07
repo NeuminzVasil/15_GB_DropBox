@@ -4,24 +4,18 @@ import java.util.List;
 
 public class UsersOnLineList {
 
+    public static String MyID = null;
+
     private static List<User> usersOnLineList = new LinkedList<>();// список зарегистрировавшихся пользователей онлайн
 
-    public static void main(String[] args) throws InterruptedException {
-
-
-        for (int i = 0; i < 10; i++) {
-            usersOnLineList.add(new User("id" + i, "login" + i, i));
-            Thread.sleep(2000);
-        }
-
-
-        usersOnLineList.forEach(user -> System.out.println(user.toString()));
-
-
+    public static List<User> getUsersOnLineList() {
+        usersOnLineList.forEach(System.out::println);
+        return usersOnLineList;
     }
 
     public static void addRegisteredUserID(String login, String registeredUserID) {
         usersOnLineList.add(new User(registeredUserID, login, 1)); // проработать получение dataBaseID из БД
+
     }
 
     private static class User {
@@ -47,8 +41,8 @@ public class UsersOnLineList {
 
         @Override
         public String toString() {
-            return "registeredID='" + registeredUserID + '\'' +
-                    ", login='" + login + '\'' +
+            return "login='" + login + '\'' +
+                    ", registeredID='" + registeredUserID + '\'' +
                     ", dataBaseID=" + dataBaseID +
                     ", lestOperationTime=" + lestOperationTime;
         }

@@ -59,7 +59,7 @@ public class ClientNetListener implements Runnable {
 //                    ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
                     socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsClient.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
-                    socketChannel.pipeline().addLast(new Reflector(handlerName));
+                    socketChannel.pipeline().addLast(new ReflectorCIHA(handlerName));
                 }
             };
 

@@ -10,9 +10,6 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class ServerNetListener implements Runnable {
     private String handlerName;
     private EventLoopGroup bossGroup = new NioEventLoopGroup(); // пул потоков для организации подключения
@@ -37,7 +34,7 @@ public class ServerNetListener implements Runnable {
                     //socketChannel.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
                     socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsServer.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
-                    socketChannel.pipeline().addLast(new Reflector(handlerName));
+                    socketChannel.pipeline().addLast(new ReflectorCIHA(handlerName));
                 }
             };
 
