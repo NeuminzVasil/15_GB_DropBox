@@ -7,7 +7,7 @@ public class SettingsClient {
     public SettingsClient() throws IOException {
     }
 
-    public final static Path CLIENT_PATH = Paths.get(System.getProperty("user.dir").concat("\\StorageLocal")).toAbsolutePath();
+    public final static Path CLIENT_PATH = Paths.get(System.getProperty("user.dir").concat("/StorageLocal")).toAbsolutePath();
     public static int HOST_PORT = 8189;
     public static String HOST_NAME = "localhost";
 

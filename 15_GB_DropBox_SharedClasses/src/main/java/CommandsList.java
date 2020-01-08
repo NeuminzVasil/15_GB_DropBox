@@ -155,7 +155,7 @@ public class CommandsList implements CommandAnswer {
         switch (this.whoIsSender) {
             case CLIENT: //я на стороне сервера
                 try {
-                    Files.delete(Paths.get(SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterFirst));
+                    Files.delete(Paths.get(SettingsServer.SERVER_PATH + "/" + this.mnemonicParameterFirst));
                     System.out.println("файл: " + this.mnemonicParameterFirst + " удален из хранилища на сервере.");
                     this.mnemonicParameterSecond = "true";
                 } catch (IOException e) {
@@ -191,7 +191,7 @@ public class CommandsList implements CommandAnswer {
         switch (this.whoIsSender) {
             case CLIENT: //я на стороне сервера
                 try {
-                    this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "\\" + Paths.get(this.mnemonicParameterFirst).getFileName();
+                    this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "/" + Paths.get(this.mnemonicParameterFirst).getFileName();
                     Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL записываем данные объекта в файл
                     System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в хранилище на сервере.");
                     this.mnemonicParameterSecond = "done";
@@ -230,7 +230,7 @@ public class CommandsList implements CommandAnswer {
         switch (this.whoIsSender) {
             case CLIENT: // я на стороне сервера
                 this.whoIsSender = WhoIsSender.SERVER;
-                this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterFirst;
+                this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "/" + this.mnemonicParameterFirst;
 
                 try {
                     fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst)); // NL записываем данные файла в объект
@@ -244,7 +244,7 @@ public class CommandsList implements CommandAnswer {
                 break;
 
             case SERVER: // я на стороне клиента
-                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "\\" + Paths.get(this.mnemonicParameterFirst).getFileName().toString();
+                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "/" + Paths.get(this.mnemonicParameterFirst).getFileName().toString();
                 try {
                     Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL создаем на клиенте файл из объекта
                     System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в локальном хранилище");
@@ -271,8 +271,8 @@ public class CommandsList implements CommandAnswer {
         switch (this.whoIsSender) {
             case CLIENT: // я на стороне сервера
                 this.whoIsSender = WhoIsSender.SERVER;
-                this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterFirst;
-                this.mnemonicParameterSecond = SettingsServer.SERVER_PATH + "\\" + this.mnemonicParameterSecond;
+                this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "/" + this.mnemonicParameterFirst;
+                this.mnemonicParameterSecond = SettingsServer.SERVER_PATH + "/" + this.mnemonicParameterSecond;
 
                 try {
                     Files.move(Paths.get(this.mnemonicParameterFirst), Paths.get(this.mnemonicParameterSecond), StandardCopyOption.REPLACE_EXISTING);
@@ -394,7 +394,7 @@ public class CommandsList implements CommandAnswer {
 
         if (this.mnemonicCode.equals("~sf")) { // отправляемый в сеть объект-файл уже должен быть с данными поэтому заполняем здесь.
             try {
-                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "\\" + this.mnemonicParameterFirst;
+                this.mnemonicParameterFirst = SettingsClient.CLIENT_PATH + "/" + this.mnemonicParameterFirst;
                 this.fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst).toAbsolutePath()); // NL записываем данные файла в объект
             } catch (Exception e) {
                 System.err.println("не могу прочитать файл: " + this.mnemonicParameterFirst + " на локальном хранилище.");
