@@ -1,9 +1,8 @@
-import org.sqlite.SQLiteException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.util.Date;
 
 public class DBConnect {
 
@@ -33,7 +32,7 @@ public class DBConnect {
             return connection;
         } catch (ClassNotFoundException | SQLException e) {
             System.err.println("DBConnect.connectToDB(): Не могу подключиться к БД." + e.getMessage());
-            e.getMessage();
+            System.err.println(e.getMessage());
         }
         return null;
     }
@@ -54,28 +53,27 @@ public class DBConnect {
             connection.close();
         } catch (SQLException e) {
             System.err.println("DBConnect.disconnectFromDB(): Не могу отключиться от базы данных." + e.getMessage());
-            e.getMessage();
+            System.err.println(e.getMessage());
         }
     }
 
     /**
      * метод добавления нового пользователя в БД.
      *
-     * @param val1 логин
-     * @param val2 пароль
+     * @param login    логин
+     * @param password пароль
      * @return результат выполнения - Int = колличеству вставленных строк (0\1)
      */
-    private Integer addNewUser(String val1, String val2) {
-        Integer result = 0;
+    public Integer setNewUserID(String login, String password) {
+        String registeredUserID = login + new Date().getTime();
+        Integer result = -1;
         try {
-            result = statement.executeUpdate("INSERT INTO USERS (LOGIN, PASSWORD) VALUES ('" + val1 + "' , '" + val2 + "')");
-        } catch (SQLiteException e) {
+            result = statement.executeUpdate("INSERT INTO USERS (LOGIN, PASSWORD, registeredUserID) VALUES ('" + login + "' , '" + password + "' , '" + registeredUserID + "')");
+        } catch (SQLException e) {
             System.err.println(e.getMessage());
-        } finally {
-            return result;
         }
-
-    } // NL БД. доработать вставку случайного registeredUserID
+        return result;
+    }
 
     /**
      * метод получения RegisteredUserID( пользователя по логину и паролю.
@@ -101,9 +99,10 @@ public class DBConnect {
             } else System.err.println("в БД нет информации о логине: " + login);
         } catch (SQLException | IOException e) {
             System.err.println("не могу подключиться к БД для получения ID пользователя.");
-            e.getMessage();
+            System.err.println(e.getMessage());
         }
 
         return result;
     }
+
 }
