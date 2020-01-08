@@ -50,7 +50,7 @@ public class ClientNetListener implements Runnable {
 
             clientBootstrap.channel(NioSocketChannel.class);
 
-            clientBootstrap.remoteAddress(new InetSocketAddress(SettingsClient.HOST_NAME, SettingsClient.HOST_PORT));
+            clientBootstrap.remoteAddress(new InetSocketAddress(Settings.HOST_NAME, Settings.HOST_PORT));
 
             channelInitializer = new ChannelInitializer<SocketChannel>() {
                 @Override
@@ -58,7 +58,7 @@ public class ClientNetListener implements Runnable {
                     socketChannel = ch;
 //                    ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
-                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsClient.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
+                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(Settings.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
                     socketChannel.pipeline().addLast(new ReflectorCIHA(handlerName));
                 }
             };

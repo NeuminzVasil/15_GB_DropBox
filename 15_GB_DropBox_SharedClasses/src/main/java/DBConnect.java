@@ -28,9 +28,8 @@ public class DBConnect {
     private Connection connect() {
         try {
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + SettingsServer.DB_DESTINATION); // NL БД. если подключаемся удаленно то в этом месте указываем IP и PORT
+            connection = DriverManager.getConnection("jdbc:sqlite:" + Settings.DB_DESTINATION); // NL БД. если подключаемся удаленно то в этом месте указываем IP и PORT
             statement = connection.createStatement();
-            System.out.println("DBConnect.connectToDB(): подключился к БД.");
             return connection;
         } catch (ClassNotFoundException | SQLException e) {
             System.err.println("DBConnect.connectToDB(): Не могу подключиться к БД." + e.getMessage());
@@ -53,7 +52,6 @@ public class DBConnect {
     public void disconnect() {
         try {
             connection.close();
-            System.out.println("DBConnect.disconnectFromDB(): отключилься от базы данных."); //DM
         } catch (SQLException e) {
             System.err.println("DBConnect.disconnectFromDB(): Не могу отключиться от базы данных." + e.getMessage());
             e.getMessage();
@@ -97,8 +95,8 @@ public class DBConnect {
 
             if (resultSet.next()) {
                 UsersOnLineList.addUser(resultSet.getString("registeredUserID"), login); // добавляем в список пользователей онлайн
-                if (!Files.exists(Paths.get(SettingsServer.SERVER_PATH.toString(), login))) // проверяем наличие/создаем папку на сервере с именем логина
-                    Files.createDirectories(Paths.get(SettingsServer.SERVER_PATH.toString(), login));
+                if (!Files.exists(Paths.get(Settings.SERVER_PATH.toString(), login))) // проверяем наличие/создаем папку на сервере с именем логина
+                    Files.createDirectories(Paths.get(Settings.SERVER_PATH.toString(), login));
                 result = resultSet.getString("registeredUserID");
             } else System.err.println("в БД нет информации о логине: " + login);
         } catch (SQLException | IOException e) {

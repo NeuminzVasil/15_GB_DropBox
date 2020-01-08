@@ -33,7 +33,7 @@ public class ServerNetListener implements Runnable {
                     socketChannel = ch;
                     //socketChannel.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
-                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(SettingsServer.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
+                    socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(Settings.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
                     socketChannel.pipeline().addLast(new ReflectorCIHA(handlerName));
                 }
             };
@@ -42,7 +42,7 @@ public class ServerNetListener implements Runnable {
                     .channel(NioServerSocketChannel.class) // указание канала для подключения новых клиентов
                     .childHandler(channelInitializer).childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            channelFuture = serverBootstrap.bind(SettingsServer.HOST_PORT).sync();// запуск прослушивания порта 8189 для подключения клиентов
+            channelFuture = serverBootstrap.bind(Settings.HOST_PORT).sync();// запуск прослушивания порта 8189 для подключения клиентов
             System.out.println("ServerNetListener.Works.");
 //  NL сервер. здесь происходит блокирующая магия.
 
