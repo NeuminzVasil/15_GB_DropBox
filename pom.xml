@@ -12,6 +12,7 @@
         <module>15_GB_DropBox_Client</module>
         <module>15_GB_DropBox_Server</module>
         <module>15_GB_DropBox_SharedClasses</module>
+        <module>15_GB_DropBox_ClientFX</module>
     </modules>
 
     <properties> <!-- версия SDK -->

@@ -31,6 +31,7 @@ public class CommandsList implements CommandAnswer {
             "~sf NAME - to sent file NAME from local to server storage. \n\t~df NAME - to delete file NAME from server storage. \n\t" +
             "~rf NAME - to renaming file NAME from server storage. \n____________________________________________________________";
     final String commandsInfoShort = "Commands available: \n\t~lu LOGIN PASSWORD - to login IN. \n\t" +
+            "~ru LOGIN PASSWORD  - to register new user. \n\t" +
             "~?  - to get help.\n____________________________________________________________";
 
     private CommandAnswer.WhoIsSender whoIsSender;
@@ -59,6 +60,8 @@ public class CommandsList implements CommandAnswer {
             getCommandsList(ctx); // NL  0) если запрос списка команд = выполнить запрос
         else if (this.mnemonicCode.toLowerCase().startsWith("~lu")) //NL  1) если нет регистрации то запустить регистрацию пользователя
             logonUser(ctx);
+        else if (this.mnemonicCode.toLowerCase().startsWith("~ru"))
+            registerNewUser(ctx);
         else if (this.registeredUserID != null) { // NL 2) если есть регистация = выоплнить команду.
             if (this.mnemonicCode.toLowerCase().startsWith("~si"))
                 getServerInfo(ctx);
@@ -68,6 +71,30 @@ public class CommandsList implements CommandAnswer {
             else if (this.mnemonicCode.toLowerCase().startsWith("~rf")) renameFile(ctx);
         } else
             System.err.println("Reflection. unknown incoming command or no user`s authority. incoming mnemonicCode: (" + mnemonicCode + ")");
+    }
+
+    private void registerNewUser(ChannelHandlerContext ctx) {
+        switch (this.whoIsSender) {
+
+            case CLIENT: // я на стороне сервера, хочу создать нового пользователя в БД
+                this.whoIsSender = WhoIsSender.SERVER;
+                DBConnect dbConnect = new DBConnect();
+                if (dbConnect.setNewUserID(this.mnemonicParameterFirst, this.mnemonicParameterSecond) > 0) {
+                    this.mnemonicParameterSecond = " зарегистрирован";
+                } else this.mnemonicParameterSecond = " не зарегистрирован";
+                dbConnect.disconnect();
+                ctx.writeAndFlush(this);
+                break;
+
+            case SERVER: // я на стороне клиента фиксирую себя в листе пользователей
+                System.out.println("Пользователь " + this.mnemonicParameterFirst + " " + this.mnemonicParameterSecond);
+                this.whoIsSender = WhoIsSender.NULL;
+                break;
+
+            default:
+                System.err.println("RenamingFile.Reflection. Укажите отправителя.");
+                break;
+        }
     }
 
     /**
@@ -113,7 +140,7 @@ public class CommandsList implements CommandAnswer {
                         this.files = Arrays.asList(new File(Settings.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString()).listFiles()); //  формируем список файлов сервера в LIST
                     } catch (Exception e) {
                         System.err.println("не могу получить список файлов в заданной папке:" + Settings.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString());
-                        e.getMessage();
+                        System.err.println(e.getMessage());
                     }
                 } else if (!this.mnemonicParameterFirst.equals("~c"))
                     System.err.println("для команды ~si второй параметр должен быть либо ~s либо ~c");
@@ -130,7 +157,7 @@ public class CommandsList implements CommandAnswer {
                         this.getFiles().forEach(System.out::println); // формируем список файлов клиента в LIST
                     } catch (Exception e) {
                         System.err.println("не могу получить список файлов в заданной папке.");
-                        e.getMessage();
+                        System.err.println(e.getMessage());
                     }
                 } else if (this.mnemonicParameterFirst.equals("~s")) {// я хочу получить файлы на сервере
                     this.getFiles().forEach(System.out::println);
@@ -159,7 +186,7 @@ public class CommandsList implements CommandAnswer {
                 } catch (IOException e) {
                     System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно удалить из хранилища на сервере.");
                     this.mnemonicParameterSecond = "false";
-                    e.getMessage();
+                    System.err.println(e.getMessage());
                 }
 
                 this.whoIsSender = WhoIsSender.SERVER;
@@ -199,7 +226,7 @@ public class CommandsList implements CommandAnswer {
                 } catch (IOException e) {
                     System.err.println("Невозможно записать " + this.mnemonicParameterFirst + " в хранилище на сервере.");
                     this.mnemonicParameterSecond = "false";
-                    e.getMessage();
+                    System.err.println(e.getMessage());
                 }
 
                 this.whoIsSender = WhoIsSender.SERVER;
@@ -240,7 +267,7 @@ public class CommandsList implements CommandAnswer {
                     this.mnemonicParameterSecond = "done";
                 } catch (Exception e) {
                     this.mnemonicParameterSecond = "false";
-                    e.getMessage();
+                    System.err.println(e.getMessage());
                 }
 
                 ctx.writeAndFlush(this); // NL отправляем объект с данными файла в сторону клиента
@@ -253,7 +280,7 @@ public class CommandsList implements CommandAnswer {
                     System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в локальном хранилище");
                 } catch (IOException e) {
                     System.err.println("не могу записать файл: " + this.mnemonicParameterFirst + " в локальном хранилище");
-                    e.getMessage();
+                    System.err.println(e.getMessage());
                 }
 
                 this.whoIsSender = WhoIsSender.NULL;
@@ -283,7 +310,7 @@ public class CommandsList implements CommandAnswer {
                 } catch (IOException e) {
                     System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно переименовать на сервере в " + this.mnemonicParameterSecond);
                     this.mnemonicParameterSecond = "false";
-                    e.getMessage();
+                    System.err.println(e.getMessage());
                 }
                 ctx.writeAndFlush(this); //
                 break;

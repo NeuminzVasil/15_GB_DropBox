@@ -20,7 +20,7 @@ public class ReflectorCIHA extends ChannelInboundHandlerAdapter {
         try {
             ((CommandsList) msg).reflection(ctx);
         } catch (Exception e) {
-            e.getMessage();
+            System.err.println(e.getMessage());
         } finally {
 // TODO: можно использовать in.release()
 //  - спросить Тренера: - 1.в чем разница
@@ -35,7 +35,7 @@ public class ReflectorCIHA extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         ctx.close();
-        cause.getMessage();
+        System.out.println(cause.getMessage());
     }
 
 }

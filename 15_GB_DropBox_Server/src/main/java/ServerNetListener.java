@@ -9,6 +9,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 public class ServerNetListener implements Runnable {
     private String handlerName;
@@ -31,7 +33,7 @@ public class ServerNetListener implements Runnable {
                 @Override
                 protected void initChannel(SocketChannel ch) { // настройка конвеера для каждого подключившегося клиента
                     socketChannel = ch;
-                    //socketChannel.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
+                    socketChannel.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                     socketChannel.pipeline().addLast(handlerName + ".ObjectEncoder", new ObjectEncoder());
                     socketChannel.pipeline().addLast(handlerName + ".ObjectDecoder", new ObjectDecoder(Settings.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)));
                     socketChannel.pipeline().addLast(new ReflectorCIHA(handlerName));
