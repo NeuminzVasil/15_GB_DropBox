@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -80,25 +79,26 @@ public class CommandsList implements CommandAnswer {
 
             case CLIENT: // я на стороне сервера, хочу получить идетификационный номер и занести себя в лист зарегистрированных пользователей.
                 this.whoIsSender = WhoIsSender.SERVER;
-                System.out.println("Регистрация пользователя: " + this.mnemonicParameterFirst);
-                try {
-                    DBConnect dbConnect = new DBConnect();  // 1) подключиться к БД
-                    this.registeredUserID = dbConnect.getRegisteredUserID(this.mnemonicParameterFirst, this.mnemonicParameterSecond); // 2) присвоить полю команды this.registeredUserID полезное значение либо null  +
-                    dbConnect.disconnect();
-                } catch (SQLException e) {
-                    System.err.println("не могу подключиться к БД для получения ID пользователя.");
-                }
-                UsersOnLineList.addRegisteredUserID(this.mnemonicParameterFirst, this.registeredUserID); // 3) зарегистрировать в списке пользователей
+                System.out.println("Проверка учетных данных пользователя: " + this.mnemonicParameterFirst); // DM
+                DBConnect dbConnect = new DBConnect();  // 1) подключиться к БД
+                this.registeredUserID = dbConnect.getRegisteredUserID(this.mnemonicParameterFirst, this.mnemonicParameterSecond); // 2) присвоить полю команды this.registeredUserID полезное значение либо null  +
+                System.out.println("this.registeredUserID" + this.registeredUserID); //dm
+                dbConnect.disconnect();
+                UsersOnLineList.addUser(this.mnemonicParameterFirst, this.registeredUserID); // 3) зарегистрировать в списке пользователей
                 ctx.writeAndFlush(this);
                 break;
 
             case SERVER: // я на стороне клиента фиксирую себя в листе пользователей
-                UsersOnLineList.MyID = this.registeredUserID;
-                System.out.println("Регистрация пользователя " + this.mnemonicParameterFirst + " прошла успешно: userID: " + UsersOnLineList.MyID);
+
+                if (this.registeredUserID != null) {
+                    UsersOnLineList.MyID = this.registeredUserID;
+                    System.out.println("Пользователь " + this.mnemonicParameterFirst + " вошел в систему." + this.registeredUserID); // todo убрать отображение ID
+                } else System.err.println("Не удается получить ID для пользователя: " + this.mnemonicParameterFirst);
+
                 this.whoIsSender = WhoIsSender.NULL;
                 break;
             default:
-                System.err.println("RenamingFile.Reflection. Укажите отправителя");
+                System.err.println("RenamingFile.Reflection. Укажите отправителя.");
                 break;
         }
     }
@@ -112,9 +112,10 @@ public class CommandsList implements CommandAnswer {
 
                 if (this.mnemonicParameterFirst.equals("~s")) { // я хочу получить файлы на сервере
                     try {
-                        this.files = Arrays.asList(new File(SettingsServer.SERVER_PATH.toString()).listFiles()); // формируем список файлов сервера в LIST
+                        // TODO ПОПРВИТЬ АВТОМАТИЧЕСКОЕ ПОЛУЧЕНИЕ ИМЕНИ ПОЛЬЗОВАТЕЛЯ
+                        this.files = Arrays.asList(new File(SettingsServer.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString()).listFiles()); //  формируем список файлов сервера в LIST
                     } catch (Exception e) {
-                        System.err.println("не могу получить список файлов в заданной папке.");
+                        System.err.println("не могу получить список файлов в заданной папке:" + SettingsServer.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString());
                         e.getMessage();
                     }
                 } else if (!this.mnemonicParameterFirst.equals("~c"))
@@ -189,9 +190,13 @@ public class CommandsList implements CommandAnswer {
     public void sendFile(ChannelHandlerContext ctx) {
 
         switch (this.whoIsSender) {
-            case CLIENT: //я на стороне сервера
+            case CLIENT: //я на стороне сервера. Хочу записать файл полученный от клиента
                 try {
-                    this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "/" + Paths.get(this.mnemonicParameterFirst).getFileName();
+                    //todo автоматизировать получение имени папки пользователя
+                    this.mnemonicParameterFirst = Paths.get(String.format("%s%s%s",
+                            SettingsServer.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), Paths.get(this.mnemonicParameterFirst)
+                                    .getFileName())).toAbsolutePath().toString();
+                    System.out.println(this.mnemonicParameterFirst);
                     Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL записываем данные объекта в файл
                     System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в хранилище на сервере.");
                     this.mnemonicParameterSecond = "done";
@@ -228,10 +233,13 @@ public class CommandsList implements CommandAnswer {
     public void getFile(ChannelHandlerContext ctx) {
 
         switch (this.whoIsSender) {
-            case CLIENT: // я на стороне сервера
+            case CLIENT: // я на стороне сервера. Хочу получить файл из папки пользователя
                 this.whoIsSender = WhoIsSender.SERVER;
-                this.mnemonicParameterFirst = SettingsServer.SERVER_PATH + "/" + this.mnemonicParameterFirst;
-
+                // todo автоматизировать получение логина пользователя
+                this.mnemonicParameterFirst = String.format("%s%s%s",
+                        SettingsServer.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), this.mnemonicParameterFirst);
+                this.mnemonicParameterFirst = Paths.get(this.mnemonicParameterFirst).toAbsolutePath().toString();
+                System.out.println(this.mnemonicParameterFirst);
                 try {
                     fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst)); // NL записываем данные файла в объект
                     this.mnemonicParameterSecond = "done";

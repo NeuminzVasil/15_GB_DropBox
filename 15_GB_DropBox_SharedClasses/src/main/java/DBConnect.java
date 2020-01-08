@@ -1,47 +1,21 @@
 import org.sqlite.SQLiteException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 
 public class DBConnect {
 
     private static Connection connection; // ссылка на подлкючение к бд
-    private static String registeredUserID; // здесь будет храниться запрашиваемый ID пользователя // ID пользователя мы получаем от программы
     private Statement statement; // подготовка текста запроса к БД
     private ResultSet resultSet; // ссылка на "таблицу-результат" запроса к БД
-    private String login;
-    private String password;
 
+    /**
+     * Констуктор объекта с подключением к базе данных
+     */
     public DBConnect() {
         connection = connect();
-    }
-
-    public Connection getConnection() {
-        return connection;
-    }
-
-    /**
-     * метод обновления всех ID пользователей на новые
-     */
-    public void resetAllRegisteredID() {
-        //statement.executeUpdate() // NL БД. написать метод генерации случайных строковых значений и запись их во все значения в таблице.
-    }
-
-    /**
-     * метод получения RegisteredUserID( пользователя по логину и паролю.
-     *
-     * @param login    - входящий логин
-     * @param password - входящий пароль
-     * @return
-     * @throws SQLException
-     */
-    public String getRegisteredUserID(String login, String password) throws SQLException {
-        this.login = login;
-        this.password = password;
-        resultSet = statement.executeQuery(String.format(
-                "SELECT registeredUserID FROM USERS where login = '%s' and password = '%s'", this.login, this.password));
-        System.out.println("resultSet.getString(\"registeredUserID\"): " + resultSet.getString("registeredUserID"));
-        //disconnectFromDB();
-        return resultSet.getString("registeredUserID");
     }
 
     /**
@@ -65,13 +39,21 @@ public class DBConnect {
         return null;
     }
 
+    public static void main(String[] args) {
+        String registeredUserID = null;
+        DBConnect dbConnect = new DBConnect();
+        registeredUserID = dbConnect.getRegisteredUserID("l1", "p1"); // 2) присвоить полю команды this.registeredUserID полезное значение либо null  +
+        System.out.println(registeredUserID);
+        dbConnect.disconnect();
+    }
+
     /**
      * метод отключения от базы даннх
      */
     public void disconnect() {
         try {
             connection.close();
-            System.out.println("DBConnect.disconnectFromDB(): отключилься от базы данных.");
+            System.out.println("DBConnect.disconnectFromDB(): отключилься от базы данных."); //DM
         } catch (SQLException e) {
             System.err.println("DBConnect.disconnectFromDB(): Не могу отключиться от базы данных." + e.getMessage());
             e.getMessage();
@@ -97,4 +79,33 @@ public class DBConnect {
 
     } // NL БД. доработать вставку случайного registeredUserID
 
+    /**
+     * метод получения RegisteredUserID( пользователя по логину и паролю.
+     *
+     * @param login    - входящий логин
+     * @param password - входящий пароль
+     * @return
+     * @throws SQLException
+     */
+    public String getRegisteredUserID(String login, String password) {
+
+        String result = null;
+
+        try {
+            resultSet = statement.executeQuery(String.format(
+                    "SELECT registeredUserID FROM USERS where login = '%s' and password = '%s'", login, password));
+
+            if (resultSet.next()) {
+                UsersOnLineList.addUser(resultSet.getString("registeredUserID"), login); // добавляем в список пользователей онлайн
+                if (!Files.exists(Paths.get(SettingsServer.SERVER_PATH.toString(), login))) // проверяем наличие/создаем папку на сервере с именем логина
+                    Files.createDirectories(Paths.get(SettingsServer.SERVER_PATH.toString(), login));
+                result = resultSet.getString("registeredUserID");
+            } else System.err.println("в БД нет информации о логине: " + login);
+        } catch (SQLException | IOException e) {
+            System.err.println("не могу подключиться к БД для получения ID пользователя.");
+            e.getMessage();
+        }
+
+        return result;
+    }
 }

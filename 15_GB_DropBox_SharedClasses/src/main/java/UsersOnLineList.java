@@ -1,51 +1,21 @@
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
 
 public class UsersOnLineList {
 
-    public static String MyID = null;
+    public static String MyID = null; // NL поле ID для Клиента. Используется для запоминания реститационного номера текущего клиента
+    private static HashMap<String, String> usersOnLineList = new HashMap(); // NL поле для Сервера. список зарегистрировавшихся пользователей онлайн
 
-    private static List<User> usersOnLineList = new LinkedList<>();// список зарегистрировавшихся пользователей онлайн
-
-    public static List<User> getUsersOnLineList() {
-        usersOnLineList.forEach(System.out::println);
-        return usersOnLineList;
+    public static void addUser(String registeredUserID, String login) {
+        usersOnLineList.put(registeredUserID, login);// проработать получение dataBaseID из БД
     }
 
-    public static void addRegisteredUserID(String login, String registeredUserID) {
-        usersOnLineList.add(new User(registeredUserID, login, 1)); // проработать получение dataBaseID из БД
-
+    public static void getUsersOnLineList() {
+        usersOnLineList.forEach((k, v) -> System.out.println(k + "=" + v + "\n"));
     }
 
-    private static class User {
-        private String registeredUserID;
-        private String login;
-        private Integer dataBaseID;
-        private Date lestOperationTime; // фиксации даты последней операции для отключения пользователя по простою.
-
-        public User(String registeredID, String login, Integer dataBaseID) {
-            this.registeredUserID = registeredID;
-            this.login = login;
-            this.dataBaseID = dataBaseID;
-            this.lestOperationTime = new Date(System.currentTimeMillis());
-        }
-
-        public Date getLestOperationTime() {
-            return lestOperationTime;
-        }
-
-        public void setLestOperationTime(Date lestOperationTime) {
-            this.lestOperationTime = lestOperationTime;
-        }
-
-        @Override
-        public String toString() {
-            return "login='" + login + '\'' +
-                    ", registeredID='" + registeredUserID + '\'' +
-                    ", dataBaseID=" + dataBaseID +
-                    ", lestOperationTime=" + lestOperationTime;
-        }
+    public static String getMyFolderName(String registeredUserID) {
+        return "/" + usersOnLineList.getOrDefault(registeredUserID, null) + "/";
     }
+
 }
 
