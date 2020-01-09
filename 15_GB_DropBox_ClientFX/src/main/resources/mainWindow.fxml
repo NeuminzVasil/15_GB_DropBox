@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="Controller">
+    <children>
+        <HBox alignment="center">
+
+
+            <TreeView fx:id="treeViewServer" editable="false"/>
+            <TreeView fx:id="treeViewClient" editable="false"/>
+
+        </HBox>
+
+        <HBox>
+            <TextField fx:id="fileNameTextField" onAction="#sendMessageObject" promptText="введите название файла"
+                       text="~lu l1 p1" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="getFileButton" text="получить"/>
+            <Button fx:id="sendFileButton" onAction="#sendMessageObject" text="отправить"/>
+        </HBox>
+    </children>
+</VBox>

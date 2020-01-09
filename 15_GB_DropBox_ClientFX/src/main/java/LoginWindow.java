@@ -1,58 +1,39 @@
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class Controller implements Initializable {
+public class LoginWindow implements Initializable {
 
     @FXML
-    TextField fileNameTextField;
+    TextField textFieldLogin;
     @FXML
-    Button getFileButton;
+    TextField textFieldPassword;
     @FXML
-    Button sendFileButton;
+    Button btnConnect;
     @FXML
-    TreeView<String> treeViewServer;
-    @FXML
-    TreeView<String> treeViewClient;
-
+    Button btnExit;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-// пример создания рука и ноды
-        TreeItem<String> root = new TreeItem<>("root");
-        TreeItem<String> node1 = new TreeItem<>("node1");
-        TreeItem<String> node2 = new TreeItem<>("node2");
-        TreeItem<String> node3 = new TreeItem<>("node3");
-
-// вдобавления нода в рут
-        root.getChildren().add(node1);
-        root.getChildren().add(node2);
-        root.getChildren().addAll(node3);
-
-
-// добавления рута в тривью.
-        treeViewClient.setRoot(root);
-
-        root.setExpanded(true);
-
-
+        System.out.println("Set login window");
     }
 
+    public void btnConnectAction() {
 
-    /**
-     * Метод отправки сообщеиня в сторону сервера.
-     */
-    public void sendMessageObject() {
+        ClientSharedVariables.commandFromUsersUI.append("~lu " +
+                textFieldLogin.getText() + " " +
+                textFieldPassword.getText());
 
-        ClientSharedVariables.commandFromUsersUI.append(fileNameTextField.getText());
+        System.out.println(ClientSharedVariables.commandFromUsersUI);
 
 // NL клиент. Любой интерфейс пользователя, для взаимодействя с сервером, обязан выполнить два пункта:
 //  - 1) подготовить команду commandForSend.sendingSettings() принимает 3 параметра:
@@ -68,5 +49,22 @@ public class Controller implements Initializable {
         }
 
         ClientSharedVariables.commandFromUsersUI.setLength(0);
+
+        // NL переключаемся в основное окно
+        // TODO Переложить этот код в место которое срабатывает по вводу правильного логина
+        Stage primaryStage = new Stage();
+        FXMLLoader loader = new FXMLLoader();
+        Pane root = null;
+        try {
+            root = loader.load(getClass().getResource("mainWindow.fxml").openStream());
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        Controller controller = loader.getController(); // nl так получаем доступ к контролелру другого окна
+        primaryStage.setTitle(ClientSharedVariables.clientName);
+        primaryStage.setScene(new Scene(root, 500, 500));
+        primaryStage.show();
+
     }
+
 }
