@@ -1,4 +1,4 @@
-public class Start {
+public class ServerStart {
 
 
     public static void main(String[] args) {
@@ -6,7 +6,7 @@ public class Start {
 
         if (args.length > 0) {
             //SettingsServer.HOST_NAME = args[0];
-            Settings.HOST_PORT = Integer.parseInt(args[0]);
+            CommonVar.HOST_PORT = Integer.parseInt(args[0]);
         }
 
         // запускаем сервер

@@ -137,9 +137,9 @@ public class CommandsList implements CommandAnswer {
 
                 if (this.mnemonicParameterFirst.equals("~s")) { // я хочу получить файлы на сервере
                     try {
-                        this.files = Arrays.asList(new File(Settings.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString()).listFiles()); //  формируем список файлов сервера в LIST
+                        this.files = Arrays.asList(new File(CommonVar.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString()).listFiles()); //  формируем список файлов сервера в LIST
                     } catch (Exception e) {
-                        System.err.println("не могу получить список файлов в заданной папке:" + Settings.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString());
+                        System.err.println("не могу получить список файлов в заданной папке:" + CommonVar.getPathForUser(UsersOnLineList.getMyFolderName(this.registeredUserID)).toString());
                         System.err.println(e.getMessage());
                     }
                 } else if (!this.mnemonicParameterFirst.equals("~c"))
@@ -153,7 +153,7 @@ public class CommandsList implements CommandAnswer {
 
                 if (this.mnemonicParameterFirst.equals("~c")) { // я хочу получить файлы на клиенте
                     try {
-                        this.files = Arrays.asList(new File(Settings.CLIENT_PATH.toString()).listFiles());
+                        this.files = Arrays.asList(new File(CommonVar.CLIENT_PATH.toString()).listFiles());
                         this.getFiles().forEach(System.out::println); // формируем список файлов клиента в LIST
                     } catch (Exception e) {
                         System.err.println("не могу получить список файлов в заданной папке.");
@@ -164,6 +164,7 @@ public class CommandsList implements CommandAnswer {
                 } else System.err.println("для команды ~si второй параметр должен быть либо ~s либо ~c");
 
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this; // TODO после того как список файлов из запрошенного места сформирован , передаем ссылку на объект программе
                 break;
 
             default:
@@ -180,7 +181,7 @@ public class CommandsList implements CommandAnswer {
         switch (this.whoIsSender) {
             case CLIENT: //я на стороне сервера
                 try {
-                    Files.delete(Paths.get(Settings.SERVER_PATH + "/" + this.mnemonicParameterFirst));
+                    Files.delete(Paths.get(CommonVar.SERVER_PATH + "/" + this.mnemonicParameterFirst));
                     System.out.println("файл: " + this.mnemonicParameterFirst + " удален из хранилища на сервере.");
                     this.mnemonicParameterSecond = "true";
                 } catch (IOException e) {
@@ -217,7 +218,7 @@ public class CommandsList implements CommandAnswer {
             case CLIENT: //я на стороне сервера. Хочу записать файл полученный от клиента
                 try {
                     this.mnemonicParameterFirst = Paths.get(String.format("%s%s%s",
-                            Settings.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), Paths.get(this.mnemonicParameterFirst)
+                            CommonVar.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), Paths.get(this.mnemonicParameterFirst)
                                     .getFileName())).toAbsolutePath().toString();
                     System.out.println(this.mnemonicParameterFirst);
                     Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL записываем данные объекта в файл
@@ -259,7 +260,7 @@ public class CommandsList implements CommandAnswer {
             case CLIENT: // я на стороне сервера. Хочу получить файл из папки пользователя
                 this.whoIsSender = WhoIsSender.SERVER;
                 this.mnemonicParameterFirst = String.format("%s%s%s",
-                        Settings.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), this.mnemonicParameterFirst);
+                        CommonVar.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), this.mnemonicParameterFirst);
                 this.mnemonicParameterFirst = Paths.get(this.mnemonicParameterFirst).toAbsolutePath().toString();
                 System.out.println(this.mnemonicParameterFirst);
                 try {
@@ -274,7 +275,7 @@ public class CommandsList implements CommandAnswer {
                 break;
 
             case SERVER: // я на стороне клиента
-                this.mnemonicParameterFirst = Settings.CLIENT_PATH + "/" + Paths.get(this.mnemonicParameterFirst).getFileName().toString();
+                this.mnemonicParameterFirst = CommonVar.CLIENT_PATH + "/" + Paths.get(this.mnemonicParameterFirst).getFileName().toString();
                 try {
                     Files.write(Paths.get(this.mnemonicParameterFirst), this.fileData, StandardOpenOption.CREATE_NEW); // NL создаем на клиенте файл из объекта
                     System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в локальном хранилище");
@@ -301,8 +302,8 @@ public class CommandsList implements CommandAnswer {
         switch (this.whoIsSender) {
             case CLIENT: // я на стороне сервера
                 this.whoIsSender = WhoIsSender.SERVER;
-                this.mnemonicParameterFirst = Settings.SERVER_PATH + "/" + this.mnemonicParameterFirst;
-                this.mnemonicParameterSecond = Settings.SERVER_PATH + "/" + this.mnemonicParameterSecond;
+                this.mnemonicParameterFirst = CommonVar.SERVER_PATH + "/" + this.mnemonicParameterFirst;
+                this.mnemonicParameterSecond = CommonVar.SERVER_PATH + "/" + this.mnemonicParameterSecond;
 
                 try {
                     Files.move(Paths.get(this.mnemonicParameterFirst), Paths.get(this.mnemonicParameterSecond), StandardCopyOption.REPLACE_EXISTING);
@@ -374,6 +375,7 @@ public class CommandsList implements CommandAnswer {
      *
      * @return - List файлов
      */
+    @Override
     public List<File> getFiles() {
         return this.files;
     }
@@ -424,7 +426,7 @@ public class CommandsList implements CommandAnswer {
 
         if (this.mnemonicCode.equals("~sf")) { // отправляемый в сеть объект-файл уже должен быть с данными поэтому заполняем здесь.
             try {
-                this.mnemonicParameterFirst = Settings.CLIENT_PATH + "/" + this.mnemonicParameterFirst;
+                this.mnemonicParameterFirst = CommonVar.CLIENT_PATH + "/" + this.mnemonicParameterFirst;
                 this.fileData = Files.readAllBytes(Paths.get(this.mnemonicParameterFirst).toAbsolutePath()); // NL записываем данные файла в объект
             } catch (Exception e) {
                 System.err.println("не могу прочитать файл: " + this.mnemonicParameterFirst + " на локальном хранилище.");

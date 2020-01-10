@@ -9,26 +9,26 @@ public class ClientFXStart extends Application {
     public static void main(String[] args) {
 
         if (args.length > 0) {
-            Settings.HOST_NAME = args[0];
-            Settings.HOST_PORT = Integer.parseInt(args[1]);
+            CommonVar.HOST_NAME = args[0];
+            CommonVar.HOST_PORT = Integer.parseInt(args[1]);
         }
 
-        // запускаем подлючение к серверу
-        ClientSharedVariables.clientNetListener = new ClientNetListener(ClientSharedVariables.clientName);
-        Thread clientNetListenerThread = new Thread(ClientSharedVariables.clientNetListener);
+        // запускаем поток подлючения к серверу
+        CommonVar.clientNetListener = new ClientNetListener(CommonVar.clientName);
+        Thread clientNetListenerThread = new Thread(CommonVar.clientNetListener);
         clientNetListenerThread.start();
 
         launch(args); // NL блокирующая команда работы окна.
 
-        ClientSharedVariables.clientNetListener.getSocketChannel().closeFuture();
-        ClientSharedVariables.clientNetListener.getSocketChannel().close();
+        CommonVar.clientNetListener.getSocketChannel().closeFuture();
+        CommonVar.clientNetListener.getSocketChannel().close();
 
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("loginWindow.fxml"));
-        primaryStage.setTitle(ClientSharedVariables.clientName + ". Login window.");
+        primaryStage.setTitle(CommonVar.clientName + ". Login window.");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }

@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="Controller">
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="MainWindow">
     <children>
-        <HBox alignment="center">
+        <HBox alignment="center" VBox.vgrow="ALWAYS">
 
 
-            <TreeView fx:id="treeViewServer" editable="false"/>
-            <TreeView fx:id="treeViewClient" editable="false"/>
+            <TreeView fx:id="treeViewServer" editable="false" HBox.hgrow="ALWAYS"/>
+            <TreeView fx:id="treeViewClient" editable="false" HBox.hgrow="ALWAYS"/>
 
         </HBox>
 
         <HBox>
-            <TextField fx:id="fileNameTextField" onAction="#sendMessageObject" promptText="введите название файла"
-                       text="~lu l1 p1" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="getFileButton" text="получить"/>
-            <Button fx:id="sendFileButton" onAction="#sendMessageObject" text="отправить"/>
+            <TextField fx:id="fileNameTextField" text="~?" onAction="#sendMessageObject"
+                       promptText="введите название файла"
+                       HBox.hgrow="ALWAYS"/>
+            <Button fx:id="getFileButton" text="Получить" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="sendFileButton" text="Отправить" onAction="#sendMessageObject" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="exitButton" text="Выйти" mnemonicParsing="false" onAction="#SignOut" HBox.hgrow="ALWAYS"/>
         </HBox>
     </children>
 </VBox>
