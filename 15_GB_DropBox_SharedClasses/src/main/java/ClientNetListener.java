@@ -24,22 +24,6 @@ public class ClientNetListener implements Runnable {
         this.handlerName = handlerName;
     }
 
-    public ChannelFuture getChannelFuture() {
-        return channelFuture;
-    }
-
-    public EventLoopGroup getNioEventLoopGroup() {
-        return nioEventLoopGroup;
-    }
-
-    public Bootstrap getClientBootstrap() {
-        return clientBootstrap;
-    }
-
-    public SocketChannel getSocketChannel() {
-        return socketChannel;
-    }
-
     @Override
     public void run() {
 
@@ -78,6 +62,15 @@ public class ClientNetListener implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
+
+    public SocketChannel getSocketChannel() {
+        return socketChannel;
+    }
+
+    public void closeConnection() {
+        this.socketChannel.closeFuture();
+        this.socketChannel.close();
     }
 
     @Override

@@ -13,15 +13,9 @@ public class ClientFXStart extends Application {
             CommonVar.HOST_PORT = Integer.parseInt(args[1]);
         }
 
-        // запускаем поток подлючения к серверу
-        CommonVar.clientNetListener = new ClientNetListener(CommonVar.clientName);
-        Thread clientNetListenerThread = new Thread(CommonVar.clientNetListener);
-        clientNetListenerThread.start();
-
         launch(args); // NL блокирующая команда работы окна.
 
-        CommonVar.clientNetListener.getSocketChannel().closeFuture();
-        CommonVar.clientNetListener.getSocketChannel().close();
+        CommonVar.clientNetListener.closeConnection();
 
     }
 

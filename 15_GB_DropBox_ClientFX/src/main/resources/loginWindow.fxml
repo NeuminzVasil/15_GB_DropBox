@@ -13,9 +13,10 @@
         <PasswordField fx:id="textFieldPassword" alignment="CENTER" promptText="Password" VBox.vgrow="ALWAYS"/>
         <HBox prefHeight="25.0" prefWidth="150.0">
             <children>
-                <Button fx:id="btnConnect" defaultButton="true" mnemonicParsing="false" onAction="#btnConnectAction"
+                <Button fx:id="btnConnect" defaultButton="true" mnemonicParsing="false" onAction="#loginBtn"
                         text="Connect" HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnExit" cancelButton="true" mnemonicParsing="false" text="Exit" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="btnExit" cancelButton="true" mnemonicParsing="false" text="Exit" HBox.hgrow="ALWAYS"
+                        onAction="#exitBtn"/>
             </children>
         </HBox>
     </children>

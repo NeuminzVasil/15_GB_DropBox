@@ -180,10 +180,15 @@ public class CommandsList implements CommandAnswer {
      */
     public void deleteFile(ChannelHandlerContext ctx) {
 
+        System.out.println(this); //DM
+
         switch (this.whoIsSender) {
-            case CLIENT: //я на стороне сервера
+            case CLIENT: //я на стороне сервера, хочу удалить файл с сервера
                 try {
-                    Files.delete(Paths.get(CommonVar.SERVER_PATH + "/" + this.mnemonicParameterFirst));
+                    this.mnemonicParameterFirst = String.format("%s%s%s",
+                            CommonVar.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), this.mnemonicParameterFirst);
+                    this.mnemonicParameterFirst = Paths.get(this.mnemonicParameterFirst).toAbsolutePath().toString();
+                    Files.delete(Paths.get(this.mnemonicParameterFirst));
                     System.out.println("файл: " + this.mnemonicParameterFirst + " удален из хранилища на сервере.");
                     this.mnemonicParameterSecond = "true";
                 } catch (IOException e) {

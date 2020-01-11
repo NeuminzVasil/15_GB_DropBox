@@ -5,9 +5,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
@@ -18,16 +20,15 @@ import java.util.ResourceBundle;
 public class MainWindowController implements Initializable {
 
     @FXML
-    TextField fileNameTextField;
-    @FXML
     Button getFileButton;
     @FXML
     Button sendFileButton;
     @FXML
+    Button deleteFileButton;
+    @FXML
     TreeView<String> treeViewServer;
     @FXML
     TreeView<String> treeViewClient;
-
 
     /**
      * метод инициализации окна перед после его создания и перед его отображением
@@ -37,55 +38,70 @@ public class MainWindowController implements Initializable {
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-        updateStorageView("~si ~s", "Server Storage", treeViewServer);
-        updateStorageView("~si ~c", "Client Storage", treeViewClient);
-
+        updateStorageView("Client Storage", treeViewClient);
+        updateStorageView("Server Storage", treeViewServer);
     }
 
     /**
      * метод обновления экрана файлов на сервере
      *
-     * @param mnemocode      - мнемокоманда  "~si ~s" \ "~si ~s"
      * @param treeLabel      - название корневой папки для treeView
      * @param treeViewServer - экземпляр обновляемого treeView
      */
-    public void updateStorageView(String mnemocode, String treeLabel, TreeView<String> treeViewServer) {
+    public void updateStorageView(String treeLabel, TreeView<String> treeViewServer) {
+
+        // todo ждем когда данные вернуться с ссервера - не поянл как организовать красиво
+        while (true) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (CommonVar.commandForSend.getWhoIsSender() == CommandAnswer.WhoIsSender.NULL)
+                break;
+        }
+
+
+//        отправляем команду запроса списка файлов в харнилице
         try {
-            CommonVar.commandForSend.sendingSettings(mnemocode, CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
+            if (treeLabel.startsWith("Server"))
+                CommonVar.commandForSend.sendingSettings("~si ~s", CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
+            if (treeLabel.startsWith("Client"))
+                CommonVar.commandForSend.sendingSettings("~si ~c", CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
             CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
         } catch (IOException e) {
             System.err.println(e.getMessage());
         }
 
-        while (true) { // todo ждем когда данные вернуться с ссервера - не поянл как организовать красиво
-            System.out.println(CommonVar.commandForSend.getWhoIsSender() + " " +
-                    CommonVar.commandForSend.getRegisteredUserID()); //DM
+        // todo ждем когда данные вернуться с ссервера - не поянл как организовать красиво
+        while (true) {
             try {
                 Thread.sleep(30);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             if (CommonVar.commandForSend.getWhoIsSender() == CommandAnswer.WhoIsSender.NULL)
-                break; // NL выходим их цыкла ожидания когда объект команды вернулся со стороны сервера.
+                break;
         }
 
-        // после того как команда вернулась - отрисовывают полученный лист файлов пользователю
-        TreeItem<String> root = new TreeItem<>(treeLabel);
+        // рисую полученный лист файлов после того как команда вернулась c сервера
+        Image iconFolder = new Image(getClass().getResourceAsStream("iconFolderRemote.png"));
+        if (treeLabel.startsWith("Client"))
+            iconFolder.getClass().getResourceAsStream("iconFolderLocal.png");
+        Image iconFile = new Image(getClass().getResourceAsStream("iconFile.png"));
+        TreeItem<String> root = new TreeItem<>(treeLabel, new ImageView(iconFolder));
         CommonVar.commandForSend.getFiles().forEach(file -> {
-            root.getChildren().add(new TreeItem<>(file.getName()));
+            root.getChildren().add(new TreeItem<>(file.getName(), new ImageView(iconFile)));
         });
         treeViewServer.setRoot(root);
         root.setExpanded(true);
     }
 
-
     /**
      * Метод отправки сообщеиня в сторону сервера.
      */
     public void sendMessageObject() {
-
-        CommonVar.commandFromUsersUI.append(fileNameTextField.getText());
+        CommonVar.commandFromUsersUI.setLength(0);
 
 // NL клиент. Любой интерфейс пользователя, для взаимодействя с сервером, обязан выполнить два пункта:
 //  - 1) подготовить команду commandForSend.sendingSettings() принимает 3 параметра:
@@ -94,7 +110,7 @@ public class MainWindowController implements Initializable {
 //      -- Регистационный номер клиента, полученный при аутентификации.
 //  - 2) отправить команду в сеть writeAndFlush(String ПОДГОТОВЛЕННАЯ_КОМАНДА)
         try {
-            System.out.println(CommonVar.commandFromUsersUI); // DM
+            System.out.println("sendMessageObject().CommonVar.commandFromUsersUI: " + CommonVar.commandFromUsersUI); // DM
             CommonVar.commandForSend.sendingSettings(CommonVar.commandFromUsersUI.toString(), CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
             CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
         } catch (IOException e) {
@@ -102,6 +118,55 @@ public class MainWindowController implements Initializable {
         }
 
         CommonVar.commandFromUsersUI.setLength(0);
+
+        updateStorageView("Client Storage", treeViewClient);
+        updateStorageView("Server Storage", treeViewServer);
+    }
+
+    /**
+     * Метод получения файла с сервера.
+     */
+    public void getFileBtn() {
+
+        try {
+            treeViewServer.getSelectionModel().getSelectedItem().getValue();
+            CommonVar.commandForSend.sendingSettings("~gf " + treeViewServer.getSelectionModel().getSelectedItem().getValue(),
+                    CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
+            CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        updateStorageView("Client", treeViewClient);
+    }
+
+    /**
+     * Метод отправики файла на сервера.
+     */
+    public void sendFileBtn() {
+
+        try {
+            CommonVar.commandForSend.sendingSettings("~sf " + treeViewClient.getSelectionModel().getSelectedItem().getValue(),
+                    CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
+            CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        updateStorageView("Server", treeViewServer);
+    }
+
+    public void deleteFileOnServer() {
+
+        try {
+            CommonVar.commandForSend.sendingSettings("~df " + treeViewServer.getSelectionModel().getSelectedItem().getValue(),
+                    CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
+            CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        updateStorageView("Server", treeViewServer);
     }
 
     /**
@@ -109,7 +174,11 @@ public class MainWindowController implements Initializable {
      *
      * @param actionEvent - экземпляр события
      */
-    public void SignOut(ActionEvent actionEvent) {
+    public void signOut(ActionEvent actionEvent) {
+//      Закрываем соединение
+        CommonVar.clientNetListener.closeConnection();
+
+//      Закрываем окно и возвращаемся в окно ввода логина и пароля
         try {
             ((Node) actionEvent.getSource()).getScene().getWindow().hide(); // скрываем текущее окно
             Stage loginWindowStage = new Stage(); // создаем экземпляр сцены в которую хотим переключиться
@@ -119,6 +188,15 @@ public class MainWindowController implements Initializable {
             loginWindowStage.show(); // переключаемся в окно
         } catch (IOException e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    public void selectFile(MouseEvent actionEvent) {
+        if (actionEvent.getSource() == treeViewServer) {
+            treeViewClient.getSelectionModel().clearSelection();
+        }
+        if (actionEvent.getSource() == treeViewClient) {
+            treeViewServer.getSelectionModel().clearSelection();
         }
     }
 }

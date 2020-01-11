@@ -7,19 +7,30 @@
     <children>
         <HBox alignment="center" VBox.vgrow="ALWAYS">
 
+            <TreeView fx:id="treeViewServer" editable="false" onMouseClicked="#selectFile" HBox.hgrow="ALWAYS">
+                <contextMenu>
+                    <ContextMenu>
+                        <items>
+                            <MenuItem mnemonicParsing="false" onAction="#deleteFileOnServer" text="Delete"/>
+                        </items>
+                    </ContextMenu>
+                </contextMenu>
+            </TreeView>
 
-            <TreeView fx:id="treeViewServer" editable="false" HBox.hgrow="ALWAYS"/>
-            <TreeView fx:id="treeViewClient" editable="false" HBox.hgrow="ALWAYS"/>
+            <VBox prefHeight="400.0" prefWidth="33.0" HBox.hgrow="NEVER" VBox.vgrow="ALWAYS">
+                <children>
+                    <Button fx:id="getFileButton" onAction="#getFileBtn" text="&gt;&gt;"/>
+                    <Button fx:id="sendFileButton" onAction="#sendFileBtn" text="&lt;&lt;"/>
+                    <Button fx:id="deleteFileButton" onAction="#deleteFileOnServer" text="Х"/>
+                </children>
+            </VBox>
+
+            <TreeView fx:id="treeViewClient" editable="false" onMouseClicked="#selectFile" HBox.hgrow="ALWAYS"/>
 
         </HBox>
 
         <HBox>
-            <TextField fx:id="fileNameTextField" text="~?" onAction="#sendMessageObject"
-                       promptText="введите название файла"
-                       HBox.hgrow="ALWAYS"/>
-            <Button fx:id="getFileButton" text="Получить" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="sendFileButton" text="Отправить" onAction="#sendMessageObject" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="exitButton" text="Выйти" mnemonicParsing="false" onAction="#SignOut" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="exitButton" mnemonicParsing="false" onAction="#signOut" text="Выйти" HBox.hgrow="ALWAYS"/>
         </HBox>
     </children>
 </VBox>
