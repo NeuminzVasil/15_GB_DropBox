@@ -98,32 +98,6 @@ public class MainWindowController implements Initializable {
     }
 
     /**
-     * Метод отправки сообщеиня в сторону сервера.
-     */
-    public void sendMessageObject() {
-        CommonVar.commandFromUsersUI.setLength(0);
-
-// NL клиент. Любой интерфейс пользователя, для взаимодействя с сервером, обязан выполнить два пункта:
-//  - 1) подготовить команду commandForSend.sendingSettings() принимает 3 параметра:
-//      -- мнемокод команды с параметрами,
-//      -- суффикс отравителя,
-//      -- Регистационный номер клиента, полученный при аутентификации.
-//  - 2) отправить команду в сеть writeAndFlush(String ПОДГОТОВЛЕННАЯ_КОМАНДА)
-        try {
-            System.out.println("sendMessageObject().CommonVar.commandFromUsersUI: " + CommonVar.commandFromUsersUI); // DM
-            CommonVar.commandForSend.sendingSettings(CommonVar.commandFromUsersUI.toString(), CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
-            CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        CommonVar.commandFromUsersUI.setLength(0);
-
-        updateStorageView("Client Storage", treeViewClient);
-        updateStorageView("Server Storage", treeViewServer);
-    }
-
-    /**
      * Метод получения файла с сервера.
      */
     public void getFileBtn() {
@@ -198,5 +172,9 @@ public class MainWindowController implements Initializable {
         if (actionEvent.getSource() == treeViewClient) {
             treeViewServer.getSelectionModel().clearSelection();
         }
+    }
+
+    public void renameFileOnServer(ActionEvent actionEvent) {
+
     }
 }

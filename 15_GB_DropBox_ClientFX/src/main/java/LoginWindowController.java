@@ -60,15 +60,13 @@ public class LoginWindowController implements Initializable {
             Stage mainWindowsStage = new Stage(); // создаем экземпляр сцены
             FXMLLoader loader = new FXMLLoader(); // создаем экземпляр FXMLLoader-а
             Pane root = loader.load(getClass().getResource("mainWindow.fxml").openStream()); // создаем экземпляр корневой "панели??"
-            MainWindowController mainWindowController = loader.getController(); // nl так получаем ссылку на контролелр " этого нвого другого" окна
-//            mainWindowController.fileNameTextField.setText("test Drop the text"); // nl ..или так передаем что то в другое окно.
-            mainWindowsStage.setTitle(textFieldLogin.getText()); // nl ..или так передаем что то в другое окно.
             mainWindowsStage.setScene(new Scene(root)); // создаем "комплект" нового окна.
             mainWindowsStage.show(); // показываем окно пользователю.
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
+
 
     public void exitBtn(ActionEvent actionEvent) {
         try {
@@ -82,5 +80,15 @@ public class LoginWindowController implements Initializable {
         }
     }
 
+    public void newUserBtn(ActionEvent actionEvent) {
+        try {
+            CommonVar.commandForSend.sendingSettings("~ru " +
+                            textFieldLogin.getText() + " " + textFieldPassword.getText(),
+                    CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды регистрации нового пользователя
+            CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 

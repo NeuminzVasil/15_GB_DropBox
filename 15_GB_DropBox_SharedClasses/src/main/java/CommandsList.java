@@ -64,7 +64,7 @@ public class CommandsList implements CommandAnswer {
             registerNewUser(ctx);
         else if (this.registeredUserID != null) { // NL 2) если есть регистация = выоплнить команду.
             if (this.mnemonicCode.toLowerCase().startsWith("~si"))
-                getServerInfo(ctx);
+                getStorageInfo(ctx);
             else if (this.mnemonicCode.toLowerCase().startsWith("~df")) deleteFile(ctx);
             else if (this.mnemonicCode.toLowerCase().startsWith("~sf")) sendFile(ctx);
             else if (this.mnemonicCode.toLowerCase().startsWith("~gf")) getFile(ctx);
@@ -73,7 +73,7 @@ public class CommandsList implements CommandAnswer {
             System.err.println("Reflection. unknown incoming command or no user`s authority. incoming mnemonicCode: (" + mnemonicCode + ")");
     }
 
-    private void registerNewUser(ChannelHandlerContext ctx) {
+    public void registerNewUser(ChannelHandlerContext ctx) {
         switch (this.whoIsSender) {
 
             case CLIENT: // я на стороне сервера, хочу создать нового пользователя в БД
@@ -133,7 +133,7 @@ public class CommandsList implements CommandAnswer {
     /**
      * Метод получеия списка хранилища файлов
      */
-    public void getServerInfo(ChannelHandlerContext ctx) {
+    public void getStorageInfo(ChannelHandlerContext ctx) {
         switch (this.whoIsSender) {
             case CLIENT: //я на стороне сервера // если отправителем был клиент то выполнить логику обработки данных на стороне сервера
 
@@ -179,8 +179,6 @@ public class CommandsList implements CommandAnswer {
      * Метод удаления файлов на стороне сервера
      */
     public void deleteFile(ChannelHandlerContext ctx) {
-
-        System.out.println(this); //DM
 
         switch (this.whoIsSender) {
             case CLIENT: //я на стороне сервера, хочу удалить файл с сервера
@@ -312,14 +310,20 @@ public class CommandsList implements CommandAnswer {
         switch (this.whoIsSender) {
             case CLIENT: // я на стороне сервера
                 this.whoIsSender = WhoIsSender.SERVER;
-                this.mnemonicParameterFirst = CommonVar.SERVER_PATH + "/" + this.mnemonicParameterFirst;
-                this.mnemonicParameterSecond = CommonVar.SERVER_PATH + "/" + this.mnemonicParameterSecond;
+
+                this.mnemonicParameterFirst = String.format("%s%s%s",
+                        CommonVar.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), this.mnemonicParameterFirst);
+                this.mnemonicParameterFirst = Paths.get(this.mnemonicParameterFirst).toAbsolutePath().toString();
+
+                this.mnemonicParameterSecond = String.format("%s%s%s",
+                        CommonVar.SERVER_PATH, UsersOnLineList.getMyFolderName(this.registeredUserID), this.mnemonicParameterSecond);
+                this.mnemonicParameterSecond = Paths.get(this.mnemonicParameterSecond).toAbsolutePath().toString();
 
                 try {
                     Files.move(Paths.get(this.mnemonicParameterFirst), Paths.get(this.mnemonicParameterSecond), StandardCopyOption.REPLACE_EXISTING);
                     System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере.");
                 } catch (IOException e) {
-                    System.err.println("файл: " + this.mnemonicParameterFirst + " не возможно переименовать на сервере в " + this.mnemonicParameterSecond);
+                    System.err.println("не возможно переименовать файл: " + this.mnemonicParameterFirst + " в " + this.mnemonicParameterSecond + " на сервере.");
                     this.mnemonicParameterSecond = "false";
                     System.err.println(e.getMessage());
                 }

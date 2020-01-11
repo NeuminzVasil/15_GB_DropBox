@@ -23,7 +23,7 @@ public class ClientFXStart extends Application {
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("loginWindow.fxml"));
         primaryStage.setTitle(CommonVar.clientName + ". Login window.");
-        primaryStage.setScene(new Scene(root));
+        primaryStage.setScene(new Scene(root, 300, 150));
         primaryStage.show();
     }
 

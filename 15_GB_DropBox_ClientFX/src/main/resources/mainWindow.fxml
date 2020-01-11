@@ -5,31 +5,35 @@
 <VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal"
       fx:controller="MainWindowController">
     <children>
-        <HBox alignment="center" VBox.vgrow="ALWAYS">
+        <HBox VBox.vgrow="ALWAYS">
 
-            <TreeView fx:id="treeViewServer" editable="false" onMouseClicked="#selectFile" HBox.hgrow="ALWAYS">
+            <TreeView fx:id="treeViewServer" editable="false" onMouseClicked="#selectFile" HBox.hgrow="ALWAYS"
+                      VBox.vgrow="ALWAYS">
                 <contextMenu>
                     <ContextMenu>
                         <items>
+                            <MenuItem mnemonicParsing="false" onAction="#renameFileOnServer" text="Rename"/>
                             <MenuItem mnemonicParsing="false" onAction="#deleteFileOnServer" text="Delete"/>
                         </items>
                     </ContextMenu>
                 </contextMenu>
             </TreeView>
 
-            <VBox prefHeight="400.0" prefWidth="33.0" HBox.hgrow="NEVER" VBox.vgrow="ALWAYS">
+            <VBox prefWidth="30" VBox.vgrow="ALWAYS">
                 <children>
                     <Button fx:id="getFileButton" onAction="#getFileBtn" text="&gt;&gt;"/>
                     <Button fx:id="sendFileButton" onAction="#sendFileBtn" text="&lt;&lt;"/>
-                    <Button fx:id="deleteFileButton" onAction="#deleteFileOnServer" text="Х"/>
+                    <Button fx:id="deleteFileButton" onAction="#deleteFileOnServer" prefHeight="25.0" prefWidth="29.0"
+                            text="Х"/>
                 </children>
             </VBox>
 
-            <TreeView fx:id="treeViewClient" editable="false" onMouseClicked="#selectFile" HBox.hgrow="ALWAYS"/>
+            <TreeView fx:id="treeViewClient" editable="false" onMouseClicked="#selectFile" HBox.hgrow="ALWAYS"
+                      VBox.vgrow="ALWAYS"/>
 
         </HBox>
 
-        <HBox>
+        <HBox VBox.vgrow="NEVER">
             <Button fx:id="exitButton" mnemonicParsing="false" onAction="#signOut" text="Выйти" HBox.hgrow="ALWAYS"/>
         </HBox>
     </children>
