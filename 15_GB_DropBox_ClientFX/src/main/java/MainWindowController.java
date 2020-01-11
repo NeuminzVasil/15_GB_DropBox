@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class MainWindow implements Initializable {
+public class MainWindowController implements Initializable {
 
     @FXML
     TextField fileNameTextField;
@@ -38,43 +38,45 @@ public class MainWindow implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+        updateStorageView("~si ~s", "Server Storage", treeViewServer);
+        updateStorageView("~si ~c", "Client Storage", treeViewClient);
 
+    }
+
+    /**
+     * метод обновления экрана файлов на сервере
+     *
+     * @param mnemocode      - мнемокоманда  "~si ~s" \ "~si ~s"
+     * @param treeLabel      - название корневой папки для treeView
+     * @param treeViewServer - экземпляр обновляемого treeView
+     */
+    public void updateStorageView(String mnemocode, String treeLabel, TreeView<String> treeViewServer) {
         try {
-            // nl пробуем отправить команду серверу при инициалиации основного окна программы
-            CommonVar.commandFromUsersUI.append("~si ~s");
-            System.out.println(CommonVar.commandFromUsersUI); // DM
-            CommonVar.commandForSend.sendingSettings(CommonVar.commandFromUsersUI.toString(), CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
+            CommonVar.commandForSend.sendingSettings(mnemocode, CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды
             CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
 
-        // todo ждем когда данные вернуться с ссервера - не поянл как организовать красиво
-        while (true) {
+        while (true) { // todo ждем когда данные вернуться с ссервера - не поянл как организовать красиво
             System.out.println(CommonVar.commandForSend.getWhoIsSender() + " " +
                     CommonVar.commandForSend.getRegisteredUserID()); //DM
             try {
-                Thread.sleep(1000);
+                Thread.sleep(30);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            if (CommonVar.commandForSend.getWhoIsSender() == CommandAnswer.WhoIsSender.NULL) break;
+            if (CommonVar.commandForSend.getWhoIsSender() == CommandAnswer.WhoIsSender.NULL)
+                break; // NL выходим их цыкла ожидания когда объект команды вернулся со стороны сервера.
         }
 
-// после того как команда вернулась - отрисовывают полученный лист файлов пользователю
-// __________________________________________________________________
-// пример создания рута и ноды
-        TreeItem<String> root = new TreeItem<>("ServerFiles");
+        // после того как команда вернулась - отрисовывают полученный лист файлов пользователю
+        TreeItem<String> root = new TreeItem<>(treeLabel);
         CommonVar.commandForSend.getFiles().forEach(file -> {
             root.getChildren().add(new TreeItem<>(file.getName()));
         });
-
-// добавления рута в тривью.
         treeViewServer.setRoot(root);
         root.setExpanded(true);
-// __________________________________________________________________
-
-
     }
 
 

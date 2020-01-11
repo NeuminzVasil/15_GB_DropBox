@@ -89,6 +89,7 @@ public class CommandsList implements CommandAnswer {
             case SERVER: // я на стороне клиента фиксирую себя в листе пользователей
                 System.out.println("Пользователь " + this.mnemonicParameterFirst + " " + this.mnemonicParameterSecond);
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this;
                 break;
 
             default:
@@ -121,6 +122,7 @@ public class CommandsList implements CommandAnswer {
                 } else System.err.println("Не удается получить ID для пользователя: " + this.mnemonicParameterFirst);
 
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this;
                 break;
             default:
                 System.err.println("RenamingFile.Reflection. Укажите отправителя.");
@@ -164,7 +166,7 @@ public class CommandsList implements CommandAnswer {
                 } else System.err.println("для команды ~si второй параметр должен быть либо ~s либо ~c");
 
                 this.whoIsSender = WhoIsSender.NULL;
-                CommonVar.commandForSend = this; // TODO после того как список файлов из запрошенного места сформирован , передаем ссылку на объект программе
+                CommonVar.commandForSend = this;
                 break;
 
             default:
@@ -201,6 +203,7 @@ public class CommandsList implements CommandAnswer {
                     System.out.println("Файл " + this.mnemonicParameterFirst + " удален из хранилища на сервере.");
                 }
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this;
                 break;
 
             default:
@@ -241,6 +244,7 @@ public class CommandsList implements CommandAnswer {
                     System.out.println("Файл " + this.mnemonicParameterFirst + " сохранен в хранилище на сервере.");
                 }
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this;
                 break;
 
             default:
@@ -285,6 +289,7 @@ public class CommandsList implements CommandAnswer {
                 }
 
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this;
                 break;
 
             default:
@@ -324,6 +329,7 @@ public class CommandsList implements CommandAnswer {
                     System.out.println("файл: " + this.mnemonicParameterFirst + " переименован в " + this.mnemonicParameterSecond + " в хранилище на сервере.");
 
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this;
                 break;
 
             default:
@@ -352,6 +358,7 @@ public class CommandsList implements CommandAnswer {
             case SERVER: // я на стороне клиента
                 System.out.println(this.mnemonicParameterFirst);
                 this.whoIsSender = WhoIsSender.NULL;
+                CommonVar.commandForSend = this;
                 break;
 
             default:

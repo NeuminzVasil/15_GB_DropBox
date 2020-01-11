@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class LoginWindow implements Initializable {
+public class LoginWindowController implements Initializable {
 
     @FXML
     TextField textFieldLogin;
@@ -58,8 +58,8 @@ public class LoginWindow implements Initializable {
             Stage mainWindowsStage = new Stage(); // создаем экземпляр сцены
             FXMLLoader loader = new FXMLLoader(); // создаем экземпляр FXMLLoader-а
             Pane root = loader.load(getClass().getResource("mainWindow.fxml").openStream()); // создаем экземпляр корневой "панели??"
-            MainWindow mainWindow = loader.getController(); // nl так получаем ссылку на контролелр " этого нвого другого" окна
-            mainWindow.fileNameTextField.setText("test Dropthe text"); // nl ..или так передаем что то в другое окно.
+            MainWindowController mainWindowController = loader.getController(); // nl так получаем ссылку на контролелр " этого нвого другого" окна
+            mainWindowController.fileNameTextField.setText("test Dropthe text"); // nl ..или так передаем что то в другое окно.
             mainWindowsStage.setTitle(textFieldLogin.getText()); // nl ..или так передаем что то в другое окно.
             mainWindowsStage.setScene(new Scene(root)); // создаем "комплект" нового окна.
             mainWindowsStage.show(); // показываем окно пользователю.

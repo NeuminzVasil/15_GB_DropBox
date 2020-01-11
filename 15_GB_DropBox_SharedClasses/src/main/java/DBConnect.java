@@ -37,14 +37,6 @@ public class DBConnect {
         return null;
     }
 
-    public static void main(String[] args) {
-        String registeredUserID = null;
-        DBConnect dbConnect = new DBConnect();
-        registeredUserID = dbConnect.getRegisteredUserID("l1", "p1"); // 2) присвоить полю команды this.registeredUserID полезное значение либо null  +
-        System.out.println(registeredUserID);
-        dbConnect.disconnect();
-    }
-
     /**
      * метод отключения от базы даннх
      */
