@@ -27,7 +27,7 @@ public class DBConnect {
     private Connection connect() {
         try {
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + CommonVar.DB_DESTINATION); // NL БД. если подключаемся удаленно то в этом месте указываем IP и PORT
+            connection = DriverManager.getConnection("jdbc:sqlite:" + CommonVariables.DB_DESTINATION); // NL БД. если подключаемся удаленно то в этом месте указываем IP и PORT
             statement = connection.createStatement();
             return connection;
         } catch (ClassNotFoundException | SQLException e) {
@@ -85,8 +85,8 @@ public class DBConnect {
 
             if (resultSet.next()) {
                 UsersOnLineList.addUser(resultSet.getString("registeredUserID"), login); // добавляем в список пользователей онлайн
-                if (!Files.exists(Paths.get(CommonVar.SERVER_PATH.toString(), login))) // проверяем наличие/создаем папку на сервере с именем логина
-                    Files.createDirectories(Paths.get(CommonVar.SERVER_PATH.toString(), login));
+                if (!Files.exists(Paths.get(CommonVariables.SERVER_PATH.toString(), login))) // проверяем наличие/создаем папку на сервере с именем логина
+                    Files.createDirectories(Paths.get(CommonVariables.SERVER_PATH.toString(), login));
                 result = resultSet.getString("registeredUserID");
             } else System.err.println("в БД нет информации о логине: " + login);
         } catch (SQLException | IOException e) {

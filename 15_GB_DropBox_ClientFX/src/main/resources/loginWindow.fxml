@@ -13,7 +13,8 @@
     </VBox>
 
     <HBox alignment="BOTTOM_RIGHT" VBox.vgrow="ALWAYS">
-        <Button mnemonicParsing="false" text="Register new user" onAction="#newUserBtn"/>
+        <Button mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onAction="#newUserBtn"
+                text="Register new user"/>
         <Button fx:id="btnConnect" defaultButton="true" onAction="#loginBtn" text="Connect"/>
         <Button fx:id="btnExit" cancelButton="true" onAction="#exitBtn" text="Exit"/>
     </HBox>

@@ -30,8 +30,8 @@ public class LoginWindowController implements Initializable {
         textFieldPassword.setText("p1");
 
         // запускаем поток подлючения к серверу
-        CommonVar.clientNetListener = new ClientNetListener(CommonVar.clientName);
-        Thread clientNetListenerThread = new Thread(CommonVar.clientNetListener);
+        CommonVariables.clientNetListener = new ClientNetListener("ClientFX");
+        Thread clientNetListenerThread = new Thread(CommonVariables.clientNetListener);
         clientNetListenerThread.start();
     }
 
@@ -44,33 +44,36 @@ public class LoginWindowController implements Initializable {
 //      -- Регистационный номер клиента, полученный при аутентификации.
 //  - 2) отправить команду в сеть writeAndFlush(String ПОДГОТОВЛЕННАЯ_КОМАНДА)
         try {
-            CommonVar.commandForSend.sendingSettings("~lu " + // NL подготовка  команды
+            CommonVariables.commandForSend.sendingSettings("~lu " + // NL подготовка команды
                             textFieldLogin.getText() + " " +
                             textFieldPassword.getText(),
                     CommandAnswer.WhoIsSender.CLIENT);
-            CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL отправка команды в сеть.
+            CommonVariables.clientNetListener.getSocketChannel().writeAndFlush(CommonVariables.commandForSend); // NL отправка команды в сеть.
         } catch (IOException e) {
             System.err.println(e.getMessage());
         }
 
-        // NL переключаемся в основное окно
-        // TODO Переложить этот код в место которое срабатывает по вводу правильного логина
-        try {
-            ((Node) actionEvent.getSource()).getScene().getWindow().hide(); // скрываем текущее окно
-            Stage mainWindowsStage = new Stage(); // создаем экземпляр сцены
-            FXMLLoader loader = new FXMLLoader(); // создаем экземпляр FXMLLoader-а
-            Pane root = loader.load(getClass().getResource("mainWindow.fxml").openStream()); // создаем экземпляр корневой "панели??"
-            mainWindowsStage.setScene(new Scene(root)); // создаем "комплект" нового окна.
-            mainWindowsStage.show(); // показываем окно пользователю.
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+        CommonVariables.waitForAnswer(20);
+
+        if (CommonVariables.commandForSend.getRegisteredUserID() != null) {
+            // NL переключаемся в основное окно
+            try {
+                ((Node) actionEvent.getSource()).getScene().getWindow().hide(); // скрываем текущее окно
+                Stage mainWindowsStage = new Stage(); // создаем экземпляр сцены
+                FXMLLoader loader = new FXMLLoader(); // создаем экземпляр FXMLLoader-а
+                Pane root = loader.load(getClass().getResource("mainWindow.fxml").openStream()); // создаем экземпляр корневой "панели??"
+                mainWindowsStage.setScene(new Scene(root)); // создаем "комплект" нового окна.
+                mainWindowsStage.show(); // показываем окно пользователю.
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
 
     public void exitBtn(ActionEvent actionEvent) {
         try {
-            CommonVar.clientNetListener.closeConnection();
+            CommonVariables.clientNetListener.closeConnection();
         } finally {
             ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close(); // скрываем текущее окно
 /*            ((Node) actionEvent.getSource()).getScene().getWindow().hide(); // скрываем текущее окно
@@ -82,10 +85,10 @@ public class LoginWindowController implements Initializable {
 
     public void newUserBtn(ActionEvent actionEvent) {
         try {
-            CommonVar.commandForSend.sendingSettings("~ru " +
+            CommonVariables.commandForSend.sendingSettings("~ru " +
                             textFieldLogin.getText() + " " + textFieldPassword.getText(),
                     CommandAnswer.WhoIsSender.CLIENT);  // NL клиент. подготовка  команды регистрации нового пользователя
-            CommonVar.clientNetListener.getSocketChannel().writeAndFlush(CommonVar.commandForSend); // NL клиент. отправка команды в сеть.
+            CommonVariables.clientNetListener.getSocketChannel().writeAndFlush(CommonVariables.commandForSend); // NL клиент. отправка команды в сеть.
         } catch (IOException e) {
             e.printStackTrace();
         }

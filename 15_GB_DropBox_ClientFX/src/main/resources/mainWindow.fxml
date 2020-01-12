@@ -6,18 +6,23 @@
       fx:controller="MainWindowController">
     <children>
         <HBox VBox.vgrow="ALWAYS">
+            <VBox prefHeight="400.0" prefWidth="272.0">
+                <children>
 
-            <TreeView fx:id="treeViewServer" editable="false" onMouseClicked="#selectFile" HBox.hgrow="ALWAYS"
-                      VBox.vgrow="ALWAYS">
-                <contextMenu>
-                    <ContextMenu>
-                        <items>
-                            <MenuItem mnemonicParsing="false" onAction="#renameFileOnServer" text="Rename"/>
-                            <MenuItem mnemonicParsing="false" onAction="#deleteFileOnServer" text="Delete"/>
-                        </items>
-                    </ContextMenu>
-                </contextMenu>
-            </TreeView>
+                    <TreeView fx:id="treeViewServer" editable="false" onMouseClicked="#selectFile" prefHeight="375.0"
+                              prefWidth="144.0" VBox.vgrow="ALWAYS">
+                        <contextMenu>
+                            <ContextMenu>
+                                <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#deleteFileOnServer" text="Delete"/>
+                                </items>
+                            </ContextMenu>
+                        </contextMenu>
+                    </TreeView>
+                    <TextField fx:id="newFileNameField" onAction="#renameFileOnServer"
+                               promptText="Enter the new file name here"/>
+                </children>
+            </VBox>
 
             <VBox prefWidth="30" VBox.vgrow="ALWAYS">
                 <children>
@@ -34,7 +39,7 @@
         </HBox>
 
         <HBox VBox.vgrow="NEVER">
-            <Button fx:id="exitButton" mnemonicParsing="false" onAction="#signOut" text="Выйти" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="exitButton" onAction="#signOut" text="Выйти" HBox.hgrow="ALWAYS"/>
         </HBox>
     </children>
 </VBox>

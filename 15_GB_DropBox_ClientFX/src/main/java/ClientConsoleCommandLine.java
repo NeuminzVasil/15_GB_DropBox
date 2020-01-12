@@ -17,8 +17,8 @@ public class ClientConsoleCommandLine implements Runnable {
      */
     public ClientConsoleCommandLine(String hostName, int port) {
 
-        CommonVar.HOST_NAME = hostName;
-        CommonVar.HOST_PORT = port;
+        CommonVariables.HOST_NAME = hostName;
+        CommonVariables.HOST_PORT = port;
 
         // запускаем клиентское подлючение к серверу
         clientNetListener = new ClientNetListener(clientName);
@@ -29,12 +29,12 @@ public class ClientConsoleCommandLine implements Runnable {
     public static void main(String[] args) {
 
         if (args.length > 0) {
-            CommonVar.HOST_NAME = args[0];
-            CommonVar.HOST_PORT = Integer.parseInt(args[1]);
+            CommonVariables.HOST_NAME = args[0];
+            CommonVariables.HOST_PORT = Integer.parseInt(args[1]);
         }
 
         // запускаем консоль с внутренним запуском клиентского подключения
-        ClientConsoleCommandLine clientConsoleCommandLine = new ClientConsoleCommandLine(CommonVar.HOST_NAME, CommonVar.HOST_PORT);
+        ClientConsoleCommandLine clientConsoleCommandLine = new ClientConsoleCommandLine(CommonVariables.HOST_NAME, CommonVariables.HOST_PORT);
         Thread clientConsoleCommandLineThread = new Thread(clientConsoleCommandLine);
         clientConsoleCommandLineThread.start();
     }
